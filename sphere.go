@@ -38,3 +38,10 @@ func (s Sphere) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 
 	return HitRecord{}, false
 }
+
+func (s Sphere) BoundingBox(t0, t1 float64) (AABB, bool) {
+	return AABB{
+		s.Center.Sub(Vec3{s.Radius, s.Radius, s.Radius}),
+		s.Center.Add(Vec3{s.Radius, s.Radius, s.Radius}),
+	}, true
+}

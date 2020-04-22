@@ -49,3 +49,33 @@ func (s MovingSphere) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 
 	return HitRecord{}, false
 }
+
+func (s MovingSphere) SurroundingBox(box, box1 AABB) AABB {
+	small := Vec3{
+		math.Min(box.Min.X, box1.Min.X),
+		math.Min(box.Min.Y, box1.Min.Y),
+		math.Min(box.Min.Z, box1.Min.Z),
+	}
+
+	big := Vec3{
+		math.Max(box.Min.X, box1.Min.X),
+		math.Max(box.Min.Y, box1.Min.Y),
+		math.Max(box.Min.Z, box1.Min.Z),
+	}
+
+	return AABB{small, big}
+}
+
+func (s MovingSphere) BoundingBox(t0, t1 float64) (AABB, bool) {
+	box0 := AABB{
+		s.Center0.Sub(Vec3{s.Radius, s.Radius, s.Radius}),
+		s.Center0.Add(Vec3{s.Radius, s.Radius, s.Radius}),
+	}
+
+	box1 := AABB{
+		s.Center1.Sub(Vec3{s.Radius, s.Radius, s.Radius}),
+		s.Center1.Add(Vec3{s.Radius, s.Radius, s.Radius}),
+	}
+
+	return s.SurroundingBox(box0, box1), true
+}
