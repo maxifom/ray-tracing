@@ -36,7 +36,7 @@ func RandomScene() Hittable {
 			center := Vec3{float64(a) + 0.9*rand.Float64(), 0.2, float64(b) + 0.9*rand.Float64()}
 			if center.Sub(Vec3{4, 0.2, 0}).Length() > 0.9 {
 				if chooseMat < 0.8 {
-					hl = append(hl, Sphere{center, 0.2, Lambertian{Vec3{rand.Float64() * rand.Float64(), rand.Float64() * rand.Float64(), rand.Float64() * rand.Float64()}}})
+					hl = append(hl, MovingSphere{center, center.Add(Vec3{0, 0.5 * rand.Float64(), 0}), 0.2, Lambertian{Vec3{rand.Float64() * rand.Float64(), rand.Float64() * rand.Float64(), rand.Float64() * rand.Float64()}}, 0, 1})
 				} else if chooseMat < 0.95 {
 					hl = append(hl, Sphere{center, 0.2, Metal{Vec3{0.5 * (1 + rand.Float64()), 0.5 * (1 + rand.Float64()), 0.5 * (1 + rand.Float64())}}})
 				} else {
@@ -79,6 +79,8 @@ func main() {
 		float64(width)/float64(height),
 		aperture,
 		focusDist,
+		0,
+		1,
 	)
 
 	for j := height - 1; j >= 0; j-- {

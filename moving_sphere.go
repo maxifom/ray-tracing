@@ -1,0 +1,51 @@
+package main
+
+import "math"
+
+type MovingSphere struct {
+	Center0, Center1 Vec3
+	Radius           float64
+	Material         Material
+
+	Time0, Time1 float64
+}
+
+func (s MovingSphere) Center(time float64) Vec3 {
+	return s.Center0.
+		Add(
+			s.Center1.
+				Sub(s.Center0).
+				MulN((time - s.Time0) / (s.Time1 - s.Time0)),
+		)
+}
+
+func (s MovingSphere) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
+	oc := r.Origin.Sub(s.Center(r.Time))
+	a := Dot(r.Direction, r.Direction)
+	b := Dot(oc, r.Direction)
+	c := Dot(oc, oc) - s.Radius*s.Radius
+	discriminant := b*b - a*c
+	if discriminant > 0 {
+		temp := (-b - math.Sqrt(b*b-a*c)) / a
+		if temp < tMax && temp > tMin {
+			return HitRecord{
+				T:        temp,
+				P:        r.PointAtParameter(temp),
+				Normal:   r.PointAtParameter(temp).Sub(s.Center(r.Time)).DivN(s.Radius),
+				Material: s.Material,
+			}, true
+		}
+
+		temp = (-b + math.Sqrt(b*b-a*c)) / a
+		if temp < tMax && temp > tMin {
+			return HitRecord{
+				T:        temp,
+				P:        r.PointAtParameter(temp),
+				Normal:   r.PointAtParameter(temp).Sub(s.Center(r.Time)).DivN(s.Radius),
+				Material: s.Material,
+			}, true
+		}
+	}
+
+	return HitRecord{}, false
+}

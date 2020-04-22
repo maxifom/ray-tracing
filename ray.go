@@ -3,6 +3,8 @@ package main
 // Луч
 type Ray struct {
 	Origin, Direction Vec3
+
+	Time float64
 }
 
 func (r Ray) PointAtParameter(t float64) Vec3 {

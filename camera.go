@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 type Camera struct {
 	Origin          Vec3
@@ -12,9 +15,11 @@ type Camera struct {
 	V          Vec3
 	W          Vec3
 	LensRadius float64
+
+	Time0, Time1 float64
 }
 
-func NewCamera(lookFrom, lookAt, vUp Vec3, vFov, aspect, aperture, focusDist float64) Camera {
+func NewCamera(lookFrom, lookAt, vUp Vec3, vFov, aspect, aperture, focusDist, t0, t1 float64) Camera {
 	theta := vFov * math.Pi / 180
 	halfHeight := math.Tan(theta / 2)
 	halfWidth := aspect * halfHeight
@@ -33,6 +38,9 @@ func NewCamera(lookFrom, lookAt, vUp Vec3, vFov, aspect, aperture, focusDist flo
 		V:          v,
 		W:          w,
 		LensRadius: aperture / 2,
+
+		Time0: t0,
+		Time1: t1,
 	}
 }
 
@@ -45,5 +53,6 @@ func (c Camera) Ray(u, v float64) Ray {
 			Add(c.Vertical.
 				MulN(v)).
 			Sub(c.Origin),
+		Time: c.Time0 + rand.Float64()*(c.Time1-c.Time0),
 	}
 }

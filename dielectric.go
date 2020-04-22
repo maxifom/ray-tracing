@@ -26,16 +26,16 @@ func (d Dielectric) Scatter(r Ray, rec HitRecord) (scattered Ray, attenuation Ve
 	refracted, hasRefracted := Refract(r.Direction, outwardNormal, niOverNt)
 	if hasRefracted {
 		reflectProb = Schlick(cosine, d.RefIdx)
-		scattered = Ray{rec.P, refracted}
+		scattered = Ray{rec.P, refracted, 0}
 	} else {
-		scattered = Ray{rec.P, reflected}
+		scattered = Ray{rec.P, reflected, 0}
 		reflectProb = 1
 	}
 
 	if rand.Float64() < reflectProb {
-		scattered = Ray{rec.P, reflected}
+		scattered = Ray{rec.P, reflected, 0}
 	} else {
-		scattered = Ray{rec.P, refracted}
+		scattered = Ray{rec.P, refracted, 0}
 	}
 
 	return scattered, attenuation, true
