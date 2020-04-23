@@ -47,3 +47,19 @@ func Schlick(cosine, refIdx float64) float64 {
 
 	return r0 + (1-r0)*math.Pow(1-cosine, 5)
 }
+
+func SurroundingBox(box, box1 AABB) AABB {
+	small := Vec3{
+		math.Min(box.Min.X, box1.Min.X),
+		math.Min(box.Min.Y, box1.Min.Y),
+		math.Min(box.Min.Z, box1.Min.Z),
+	}
+
+	big := Vec3{
+		math.Max(box.Min.X, box1.Min.X),
+		math.Max(box.Min.Y, box1.Min.Y),
+		math.Max(box.Min.Z, box1.Min.Z),
+	}
+
+	return AABB{small, big}
+}

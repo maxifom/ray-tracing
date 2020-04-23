@@ -21,3 +21,7 @@ func (hl HittableList) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 
 	return outputRecord, hitAnything
 }
+
+func (hl HittableList) BoundingBox(t0, t1 float64) (AABB, bool) {
+	return NewBVHNode(hl, int64(len(hl)), t0, t1).BoundingBox(t0, t1)
+}
