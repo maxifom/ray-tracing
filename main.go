@@ -94,6 +94,27 @@ func DiffuseLightScene() Hittable {
 	)
 }
 
+func CornellBox() Hittable {
+	red := Lambertian{ConstantTexture{Vec3{0.65, 0.05, 0.05}}}
+	// yellow := Lambertian{ConstantTexture{Vec3{0.9, 0.9, 0.05}}}
+	white := Lambertian{ConstantTexture{Vec3{0.73, 0.73, 0.73}}}
+	// blue := Lambertian{ConstantTexture{Vec3{0.05, 0.05, 0.9}}}
+	green := Lambertian{ConstantTexture{Vec3{0.12, 0.45, 0.15}}}
+	light := DiffuseLight{ConstantTexture{Vec3{15, 15, 15}}}
+
+	return NewList(
+		FlipFace{YZRect{0, 555, 0, 555, 555, green}},
+		YZRect{0, 555, 0, 555, 0, red},
+		XZRect{213, 343, 227, 332, 554, light},
+		XZRect{0, 555, 0, 555, 0, white},
+		FlipFace{XZRect{0, 555, 0, 555, 555, white}},
+		FlipFace{XYRect{0, 555, 0, 555, 555, white}},
+
+		NewBox(Vec3{130, 0, 65}, Vec3{295, 165, 230}, white),
+		NewBox(Vec3{265, 0, 295}, Vec3{430, 330, 460}, white),
+	)
+}
+
 func main() {
 	file, err := os.OpenFile("output.ppm", os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
@@ -112,9 +133,10 @@ func main() {
 	// world := RandomScene()
 	// world := TwoPerlinSpheres()
 	// world := TestImageTexture()
-	world := DiffuseLightScene()
-	lookFrom := Vec3{25, 7, 5}
-	lookAt := Vec3{0, 3, 0}
+	// world := DiffuseLightScene()
+	world := CornellBox()
+	lookFrom := Vec3{278, 278, -800}
+	lookAt := Vec3{278, 278, 0}
 	focusDist := 10.0
 	aperture := 0.0
 	vUp := Vec3{0, 1, 0}
@@ -122,7 +144,7 @@ func main() {
 		lookFrom,
 		lookAt,
 		vUp,
-		20,
+		40,
 		float64(width)/float64(height),
 		aperture,
 		focusDist,
