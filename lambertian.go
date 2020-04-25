@@ -1,10 +1,17 @@
 package main
 
 type Lambertian struct {
-	Albedo Vec3
+	Albedo Texture
 }
 
 func (l Lambertian) Scatter(r Ray, rec HitRecord) (scattered Ray, attenuation Vec3, hasScattered bool) {
-	target := rec.P.Add(rec.Normal).Add(RandomInUnitSphere())
-	return Ray{rec.P, target.Sub(rec.P)}, l.Albedo, true
+	scatterDirection := rec.Normal.Add(RandomUnitVector())
+	scattered = Ray{rec.P, scatterDirection, r.Time}
+	attenuation = l.Albedo.Value(rec.U, rec.V, rec.P)
+
+	return scattered, attenuation, true
+}
+
+func (l Lambertian) Emitted(u, v float64, p Vec3) Vec3 {
+	return Vec3{}
 }

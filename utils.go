@@ -29,16 +29,11 @@ func Reflect(v, v1 Vec3) Vec3 {
 	return v.Sub(v1.MulN(2 * Dot(v, v1)))
 }
 
-func Refract(v, v1 Vec3, niOverNt float64) (Vec3, bool) {
-	uv := v.UnitVector()
-	dt := Dot(uv, v1)
-	discriminant := 1 - niOverNt*niOverNt*(1-dt*dt)
-
-	if discriminant <= 0 {
-		return Vec3{}, false
-
-	}
-	return uv.Sub(v1.MulN(dt)).MulN(niOverNt).Sub(v1.MulN(math.Sqrt(discriminant))), true
+func Refract(uv, n Vec3, niOverNt float64) Vec3 {
+	cosTheta := Dot(uv.Negative(), n)
+	rOutParallel := (uv.Add(n.MulN(cosTheta))).MulN(niOverNt)
+	rOutPerp := n.MulN(-math.Sqrt(1.0 - rOutParallel.SqrLength()))
+	return rOutParallel.Add(rOutPerp)
 }
 
 func Schlick(cosine, refIdx float64) float64 {
@@ -46,4 +41,67 @@ func Schlick(cosine, refIdx float64) float64 {
 	r0 = r0 * r0
 
 	return r0 + (1-r0)*math.Pow(1-cosine, 5)
+}
+
+func SurroundingBox(box, box1 AABB) AABB {
+	small := Vec3{
+		math.Min(box.Min.X, box1.Min.X),
+		math.Min(box.Min.Y, box1.Min.Y),
+		math.Min(box.Min.Z, box1.Min.Z),
+	}
+
+	big := Vec3{
+		math.Max(box.Min.X, box1.Min.X),
+		math.Max(box.Min.Y, box1.Min.Y),
+		math.Max(box.Min.Z, box1.Min.Z),
+	}
+
+	return AABB{small, big}
+}
+
+func PerlinInterpolation(c [2][2][2]Vec3, u, v, w float64) float64 {
+	uu := u * u * (3 - 2*u)
+	vv := v * v * (3 - 2*v)
+	ww := w * w * (3 - 2*w)
+	accum := 0.0
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 2; j++ {
+			for k := 0; k < 2; k++ {
+				i1 := float64(i)
+				j1 := float64(j)
+				k1 := float64(k)
+				weightV := Vec3{u - i1, v - j1, w - k1}
+				accum += (i1*uu + (1-i1)*(1-uu)) *
+					(j1*vv + (1-j1)*(1-vv)) *
+					(k1*ww + (1-k1)*(1-ww)) *
+					Dot(c[i][j][k], weightV)
+			}
+		}
+	}
+
+	return accum
+}
+
+func GetSphereUV(p Vec3) (u float64, v float64) {
+	phi := math.Atan2(p.Z, p.X)
+	theta := math.Asin(p.Y)
+	return 1 - (phi+math.Pi)/(2*math.Pi),
+		(theta + math.Pi/2) / math.Pi
+}
+
+func Clamp(x, min, max float64) float64 {
+	if x < min {
+		return min
+	}
+	if x > max {
+		return max
+	}
+	return x
+}
+
+func RandomUnitVector() Vec3 {
+	a := rand.Float64() * 2 * math.Pi // 0 -> 2PI
+	z := -1 + 2*rand.Float64()        // -1 -> 1
+	r := math.Sqrt(1.0 - z*z)
+	return Vec3{r * math.Cos(a), r * math.Sin(a), z}
 }
