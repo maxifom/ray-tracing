@@ -55,7 +55,7 @@ func RandomScene() Hittable {
 func TwoPerlinSpheres() Hittable {
 	return NewList(
 		Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{NoiseTexture{NewPerlin(), 2}}},
-		Sphere{Vec3{0, 2, 0}, 2, Lambertian{NoiseTexture{NewPerlin(), 2}}},
+		Sphere{Vec3{0, 1, 0}, 1, Lambertian{NoiseTextureFloat{NewPerlinFloat(), 2}}},
 	)
 }
 
@@ -66,8 +66,8 @@ func main() {
 	}
 	defer file.Close()
 
-	width := 2 * 100
-	height := 1 * 100
+	width := 16 * 100
+	height := 9 * 100
 	numberOfTimes := 10
 
 	fmt.Fprintf(file, "P3\n%d %d\n255\n", width, height)
