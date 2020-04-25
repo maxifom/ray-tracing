@@ -15,7 +15,7 @@ import (
 )
 
 // Цвет который получает луч
-func RayColor(ray Ray, background Vec3, world Hittable, depth int64) Vec3 {
+func RayColor(ray Ray, background Vec3, world Hittable, lights Hittable, depth int64) Vec3 {
 	if depth <= 0 {
 		return Vec3{0, 0, 0}
 	}
@@ -25,16 +25,75 @@ func RayColor(ray Ray, background Vec3, world Hittable, depth int64) Vec3 {
 		return background
 	}
 
-	emitted := record.Material.Emitted(record.U, record.V, record.P)
-	scattered, attenuation, hasScattered := record.Material.Scatter(ray, record)
+	emitted := record.Material.Emitted(record.U, record.V, record, record.P)
+	scattered, attenuation, pdf, hasScattered := record.Material.Scatter(ray, record)
 	if !hasScattered {
 		return emitted
 	}
 
-	return emitted.Add(attenuation.Mul(RayColor(scattered, background, world, depth-1)))
+	// onLight := Vec3{RandomDouble(213, 343), 554, RandomDouble(227, 332)}
+	// toLight := onLight.Sub(record.P)
+	// distanceSquared := toLight.SqrLength()
+	// toLight = toLight.UnitVector()
+	// if Dot(toLight, record.Normal) < 0 {
+	// 	return emitted
+	// }
+	//
+	// lightArea := (434 - 213) * (332 - 227)
+	// lightCosine := math.Abs(toLight.Y)
+	// if lightCosine < 0.000001 {
+	// 	return emitted
+	// }
+	//
+	// pdf = distanceSquared / (lightCosine * float64(lightArea))
+	// scattered = Ray{record.P, toLight, ray.Time}
+
+	lightShape := XZRect{213, 343, 227, 332, 554, DiffuseLight{ConstantTexture{Vec3{7, 7, 7}}}}
+	p0 := HittablePDF{H: lightShape, O: record.P}
+	p1 := CosinePDF{NewONB(record.Normal)}
+	p := MixturePDF{p0, p1}
+	scattered = Ray{record.P, p0.Generate(), ray.Time}
+	pdf = p0.Value(scattered.Direction)
+
+	scatteredPDF := record.Material.ScatteringPDF(ray, record, scattered)
+	return emitted.Add(attenuation.MulN(scatteredPDF).Mul(RayColor(scattered, background, world, lights, depth-1))).DivN(pdf)
 }
 
-func RandomScene() Hittable {
+func CornellBoxNew(aspect float64) (Hittable, Camera) {
+	red := Lambertian{ConstantTexture{Vec3{0.65, 0.05, 0.05}}}
+	white := Lambertian{ConstantTexture{Vec3{0.73, 0.73, 0.73}}}
+	green := Lambertian{ConstantTexture{Vec3{0.12, 0.45, 0.15}}}
+	light := DiffuseLight{ConstantTexture{Vec3{7, 7, 7}}}
+	var box1, box2 Hittable
+	box1 = NewBox(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white)
+	box1 = NewRotateY(box1, 15)
+	box1 = Translate{box1, Vec3{265, 0, 295}}
+
+	box2 = NewBox(Vec3{0, 0, 0}, Vec3{165, 165, 165}, white)
+	box2 = NewRotateY(box2, -18)
+	box2 = Translate{box2, Vec3{130, 0, 65}}
+
+	lookFrom := Vec3{278, 278, -800}
+	lookAt := Vec3{278, 278, 0}
+	vUp := Vec3{0, 1, 0}
+	distToFocus := 10.0
+	aperture := 0.0
+	vFov := 40.0
+	t0 := 0.0
+	t1 := 1.0
+	return NewList(
+		FlipFace{YZRect{0, 555, 0, 555, 555, green}},
+		YZRect{0, 555, 0, 555, 0, red},
+		XZRect{213, 343, 227, 332, 554, light},
+		XZRect{0, 555, 0, 555, 0, white},
+		FlipFace{XZRect{0, 555, 0, 555, 555, white}},
+		FlipFace{XYRect{0, 555, 0, 555, 555, white}},
+		box1, box2,
+	), NewCamera(lookFrom, lookAt, vUp, vFov, aspect, aperture, distToFocus, t0, t1)
+
+}
+
+/*func RandomScene() Hittable {
 	n := 500
 	hl := make(HittableList, 0, n)
 	hl = append(hl, Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{CheckerTexture{ConstantTexture{Vec3{0.2, 0.3, 0.1}}, ConstantTexture{Vec3{0.9, 0.9, 0.9}}}}})
@@ -195,7 +254,7 @@ func FinalScene() Hittable {
 	objects = append(objects, Translate{NewRotateY(NewBVHNode(boxes2, int64(len(boxes2)), 0, 1), 15), Vec3{-100, 270, 395}})
 
 	return objects
-}
+}*/
 
 func CornellBox() Hittable {
 	red := Lambertian{ConstantTexture{Vec3{0.65, 0.05, 0.05}}}
@@ -227,20 +286,20 @@ type Input struct {
 	X, Y int
 }
 
-func worker(width, height int, numberOfTimes int, background Vec3, world Hittable, camera Camera, image *image.RGBA, inputChan chan Input, wg *sync.WaitGroup) {
+func worker(width, height int, numberOfSamples int, background Vec3, world Hittable, camera Camera, image *image.RGBA, inputChan chan Input, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for input := range inputChan {
 		i := float64(input.X)
 		j := float64(height - input.Y)
 		col := Vec3{0, 0, 0}
-		for s := 0; s < numberOfTimes; s++ {
+		for s := 0; s < numberOfSamples; s++ {
 			u := (i + rand.Float64()) / float64(width)
 			v := (j + rand.Float64()) / float64(height)
 			ray := camera.Ray(u, v)
 			col = col.Add(RayColor(ray, background, world, MaxDepth))
 		}
 
-		col = col.DivN(float64(numberOfTimes))
+		col = col.DivN(float64(numberOfSamples))
 		col = Vec3{
 			X: math.Sqrt(col.X),
 			Y: math.Sqrt(col.Y),
@@ -261,10 +320,10 @@ func worker(width, height int, numberOfTimes int, background Vec3, world Hittabl
 const MaxDepth = 50
 
 func main() {
-	width := 1920
-	height := 1080
+	width := 555
+	height := 555
 	outputImage := image.NewRGBA(image.Rect(0, 0, width, height))
-	numberOfTimes := 100
+	numberOfSamples := 10
 	background := Vec3{0, 0, 0}
 
 	// world := RandomScene()
@@ -291,11 +350,13 @@ func main() {
 		1,
 	)
 
+	world, cam = CornellBoxNew(float64(width) / float64(height))
+
 	workerChan := make(chan Input)
 	var wg sync.WaitGroup
 	for i := 0; i < 8; i++ {
 		wg.Add(1)
-		go worker(width, height, numberOfTimes, background, world, cam, outputImage, workerChan, &wg)
+		go worker(width, height, numberOfSamples, background, world, cam, outputImage, workerChan, &wg)
 	}
 
 	for j := 0; j < height; j++ {

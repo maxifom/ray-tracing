@@ -42,3 +42,15 @@ func (A AABB) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 
 	return HitRecord{}, true
 }
+
+func (A AABB) BoundingBox(t0, t1 float64) (AABB, bool) {
+	return A, true
+}
+
+func (A AABB) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (A AABB) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}

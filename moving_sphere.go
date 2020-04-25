@@ -72,3 +72,11 @@ func (s MovingSphere) BoundingBox(t0, t1 float64) (AABB, bool) {
 
 	return SurroundingBox(box0, box1), true
 }
+
+func (s MovingSphere) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (s MovingSphere) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}

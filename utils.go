@@ -105,3 +105,17 @@ func RandomUnitVector() Vec3 {
 	r := math.Sqrt(1.0 - z*z)
 	return Vec3{r * math.Cos(a), r * math.Sin(a), z}
 }
+
+func RandomCosineDirection() Vec3 {
+	r1 := rand.Float64()
+	r2 := rand.Float64()
+	z := math.Sqrt(1.0 - r2)
+	phi := 2 * math.Pi * r1
+	x := math.Cos(phi) * math.Sqrt(r2)
+	y := math.Sin(phi) * math.Sqrt(r2)
+	return Vec3{x, y, z}
+}
+
+func RandomDouble(a, b float64) float64 {
+	return a + (b-a)*rand.Float64()
+}

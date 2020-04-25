@@ -4,10 +4,19 @@ type DiffuseLight struct {
 	Emit Texture
 }
 
-func (d DiffuseLight) Scatter(r Ray, rec HitRecord) (scattered Ray, attenuation Vec3, hasScattered bool) {
-	return Ray{}, Vec3{}, false
+func (d DiffuseLight) Emitted(u, v float64, rec HitRecord, p Vec3) Vec3 {
+	// We also need to flip the light so its normals point in the -y direction
+	if !rec.FrontFace {
+		return d.Emit.Value(u, v, p)
+	}
+
+	return Vec3{0, 0, 0}
 }
 
-func (d DiffuseLight) Emitted(u, v float64, p Vec3) Vec3 {
-	return d.Emit.Value(u, v, p)
+func (d DiffuseLight) Scatter(Ray, HitRecord) (Ray, Vec3, float64, bool) {
+	return Ray{}, Vec3{}, 0, false
+}
+
+func (d DiffuseLight) ScatteringPDF(Ray, HitRecord, Ray) float64 {
+	return 0
 }

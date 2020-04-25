@@ -25,3 +25,11 @@ func (hl HittableList) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 func (hl HittableList) BoundingBox(t0, t1 float64) (AABB, bool) {
 	return NewBVHNode(hl, int64(len(hl)), t0, t1).BoundingBox(t0, t1)
 }
+
+func (hl HittableList) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (hl HittableList) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}

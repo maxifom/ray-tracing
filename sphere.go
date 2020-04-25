@@ -56,3 +56,11 @@ func (s Sphere) BoundingBox(t0, t1 float64) (AABB, bool) {
 		s.Center.Add(Vec3{s.Radius, s.Radius, s.Radius}),
 	}, true
 }
+
+func (s Sphere) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (s Sphere) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}
