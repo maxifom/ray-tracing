@@ -267,11 +267,11 @@ func main() {
 	numberOfTimes := 100
 	background := Vec3{0, 0, 0}
 
-	world := RandomScene()
+	// world := RandomScene()
 	// world := TwoPerlinSpheres()
 	// world := TestImageTexture()
 	// world := DiffuseLightScene()
-	// world := CornellBox()
+	world := CornellBox()
 	// world := CornellBoxSmoke()
 	// world := FinalScene()
 	lookFrom := Vec3{278, 278, -800}
