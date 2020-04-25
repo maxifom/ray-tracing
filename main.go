@@ -13,24 +13,23 @@ import (
 )
 
 // Цвет который получает луч
-func RayColor(ray Ray, world Hittable, depth int64) Vec3 {
+func RayColor(ray Ray, background Vec3, world Hittable, depth int64) Vec3 {
 	if depth <= 0 {
 		return Vec3{0, 0, 0}
 	}
 
-	record, hit := world.Hit(ray, 0.001, math.MaxFloat64)
-	if hit {
-		scattered, attenuation, hasScattered := record.Material.Scatter(ray, record)
-		if hasScattered {
-			return attenuation
-			return attenuation.Mul(RayColor(scattered, world, depth-1))
-		}
-		return Vec3{0, 0, 0}
+	record, hit := world.Hit(ray, 0.001, math.Inf(1))
+	if !hit {
+		return background
 	}
 
-	unitDirection := ray.Direction.UnitVector()
-	t := 0.5*unitDirection.Y + 1.0
-	return Vec3{1, 1, 1}.MulN(1 - t).Add(Vec3{0.5, 0.7, 1.0}.MulN(t))
+	emitted := record.Material.Emitted(record.U, record.V, record.P)
+	scattered, attenuation, hasScattered := record.Material.Scatter(ray, record)
+	if !hasScattered {
+		return emitted
+	}
+
+	return emitted.Add(attenuation.Mul(RayColor(scattered, background, world, depth-1)))
 }
 
 func RandomScene() Hittable {
@@ -67,7 +66,7 @@ func TwoPerlinSpheres() Hittable {
 }
 
 func TestImageTexture() Hittable {
-	f, err := os.Open("test.jpg")
+	f, err := os.Open("earth.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,6 +85,15 @@ func TestImageTexture() Hittable {
 	)
 }
 
+func DiffuseLightScene() Hittable {
+	return NewList(
+		Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{NoiseTexture{Noise: NewPerlin(), Scale: 4}}},
+		Sphere{Vec3{0, 2, 0}, 2, Lambertian{NoiseTexture{Noise: NewPerlin(), Scale: 4}}},
+		Sphere{Vec3{0, 7, 0}, 2, DiffuseLight{ConstantTexture{Vec3{4, 4, 4}}}},
+		XYRect{3, 5, 1, 3, -2, DiffuseLight{ConstantTexture{Vec3{4, 4, 4}}}},
+	)
+}
+
 func main() {
 	file, err := os.OpenFile("output.ppm", os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
@@ -95,22 +103,25 @@ func main() {
 
 	width := 16 * 100
 	height := 9 * 100
-	numberOfTimes := 1
+	numberOfTimes := 10
+
+	background := Vec3{0, 0, 0}
 
 	fmt.Fprintf(file, "P3\n%d %d\n255\n", width, height)
 
 	// world := RandomScene()
 	// world := TwoPerlinSpheres()
-	world := TestImageTexture()
-
-	lookFrom := Vec3{13, 2, 5}
-	lookAt := Vec3{0, 0, 0}
+	// world := TestImageTexture()
+	world := DiffuseLightScene()
+	lookFrom := Vec3{25, 7, 5}
+	lookAt := Vec3{0, 3, 0}
 	focusDist := 10.0
-	aperture := 0.1
+	aperture := 0.0
+	vUp := Vec3{0, 1, 0}
 	cam := NewCamera(
 		lookFrom,
 		lookAt,
-		Vec3{0, 1, 0},
+		vUp,
 		20,
 		float64(width)/float64(height),
 		aperture,
@@ -128,7 +139,7 @@ func main() {
 				u := (float64(i) + rand.Float64()) / float64(width)
 				v := (float64(j) + rand.Float64()) / float64(height)
 				ray := cam.Ray(u, v)
-				col = col.Add(RayColor(ray, world, MaxDepth))
+				col = col.Add(RayColor(ray, background, world, MaxDepth))
 			}
 
 			col = col.DivN(float64(numberOfTimes))

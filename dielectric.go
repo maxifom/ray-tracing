@@ -40,3 +40,7 @@ func (d Dielectric) Scatter(r Ray, rec HitRecord) (scattered Ray, attenuation Ve
 	scattered = Ray{rec.P, refracted, 0}
 	return scattered, attenuation, true
 }
+
+func (d Dielectric) Emitted(u, v float64, p Vec3) Vec3 {
+	return Vec3{}
+}

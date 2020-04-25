@@ -11,3 +11,7 @@ func (l Lambertian) Scatter(r Ray, rec HitRecord) (scattered Ray, attenuation Ve
 
 	return scattered, attenuation, true
 }
+
+func (l Lambertian) Emitted(u, v float64, p Vec3) Vec3 {
+	return Vec3{}
+}

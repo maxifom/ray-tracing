@@ -10,3 +10,7 @@ func (m Metal) Scatter(r Ray, rec HitRecord) (scattered Ray, attenuation Vec3, h
 
 	return scattered, m.Albedo, Dot(scattered.Direction, rec.Normal) > 0
 }
+
+func (m Metal) Emitted(u, v float64, p Vec3) Vec3 {
+	return Vec3{}
+}
