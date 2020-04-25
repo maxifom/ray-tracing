@@ -94,13 +94,48 @@ func DiffuseLightScene() Hittable {
 	)
 }
 
+func CornellBoxSmoke() Hittable {
+	red := Lambertian{ConstantTexture{Vec3{0.65, 0.05, 0.05}}}
+	white := Lambertian{ConstantTexture{Vec3{0.73, 0.73, 0.73}}}
+	green := Lambertian{ConstantTexture{Vec3{0.12, 0.45, 0.15}}}
+	light := DiffuseLight{ConstantTexture{Vec3{7, 7, 7}}}
+	var box1, box2 Hittable
+	box1 = NewBox(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white)
+	box1 = NewRotateY(box1, 15)
+	box1 = Translate{box1, Vec3{265, 0, 295}}
+	box1 = ConstantMedium{box1, Isotropic{ConstantTexture{Vec3{0, 0, 0}}}, -1 / 0.01}
+
+	box2 = NewBox(Vec3{0, 0, 0}, Vec3{165, 165, 165}, white)
+	box2 = NewRotateY(box2, -18)
+	box2 = Translate{box2, Vec3{130, 0, 65}}
+	box2 = ConstantMedium{box2, Isotropic{ConstantTexture{Vec3{1, 1, 1}}}, -1 / 0.01}
+
+	return NewList(
+		FlipFace{YZRect{0, 555, 0, 555, 555, green}},
+		YZRect{0, 555, 0, 555, 0, red},
+		XZRect{113, 443, 127, 432, 554, light},
+		XZRect{0, 555, 0, 555, 0, white},
+		FlipFace{XZRect{0, 555, 0, 555, 555, white}},
+		FlipFace{XYRect{0, 555, 0, 555, 555, white}},
+		box1, box2,
+	)
+
+}
+
 func CornellBox() Hittable {
 	red := Lambertian{ConstantTexture{Vec3{0.65, 0.05, 0.05}}}
-	// yellow := Lambertian{ConstantTexture{Vec3{0.9, 0.9, 0.05}}}
 	white := Lambertian{ConstantTexture{Vec3{0.73, 0.73, 0.73}}}
-	// blue := Lambertian{ConstantTexture{Vec3{0.05, 0.05, 0.9}}}
 	green := Lambertian{ConstantTexture{Vec3{0.12, 0.45, 0.15}}}
 	light := DiffuseLight{ConstantTexture{Vec3{15, 15, 15}}}
+
+	var box1, box2 Hittable
+	box1 = NewBox(Vec3{0, 0, 0}, Vec3{165, 330, 165}, white)
+	box1 = NewRotateY(box1, 15)
+	box1 = Translate{box1, Vec3{265, 0, 295}}
+
+	box2 = NewBox(Vec3{0, 0, 0}, Vec3{165, 165, 165}, white)
+	box2 = NewRotateY(box2, -18)
+	box2 = Translate{box2, Vec3{130, 0, 65}}
 
 	return NewList(
 		FlipFace{YZRect{0, 555, 0, 555, 555, green}},
@@ -109,9 +144,7 @@ func CornellBox() Hittable {
 		XZRect{0, 555, 0, 555, 0, white},
 		FlipFace{XZRect{0, 555, 0, 555, 555, white}},
 		FlipFace{XYRect{0, 555, 0, 555, 555, white}},
-
-		NewBox(Vec3{130, 0, 65}, Vec3{295, 165, 230}, white),
-		NewBox(Vec3{265, 0, 295}, Vec3{430, 330, 460}, white),
+		box1, box2,
 	)
 }
 
@@ -134,7 +167,8 @@ func main() {
 	// world := TwoPerlinSpheres()
 	// world := TestImageTexture()
 	// world := DiffuseLightScene()
-	world := CornellBox()
+	// world := CornellBox()
+	world := CornellBoxSmoke()
 	lookFrom := Vec3{278, 278, -800}
 	lookAt := Vec3{278, 278, 0}
 	focusDist := 10.0
