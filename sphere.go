@@ -10,29 +10,40 @@ type Sphere struct {
 
 func (s Sphere) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 	oc := r.Origin.Sub(s.Center)
-	a := Dot(r.Direction, r.Direction)
-	b := Dot(oc, r.Direction)
-	c := Dot(oc, oc) - s.Radius*s.Radius
-	discriminant := b*b - a*c
+	a := r.Direction.SqrLength()
+	halfB := Dot(oc, r.Direction)
+	c := oc.SqrLength() - s.Radius*s.Radius
+	discriminant := halfB*halfB - a*c
 	if discriminant > 0 {
-		temp := (-b - math.Sqrt(b*b-a*c)) / a
+		root := math.Sqrt(discriminant)
+		temp := (-halfB - root) / a
 		if temp < tMax && temp > tMin {
-			return HitRecord{
+			h := HitRecord{
 				T:        temp,
 				P:        r.PointAtParameter(temp),
 				Normal:   r.PointAtParameter(temp).Sub(s.Center).DivN(s.Radius),
 				Material: s.Material,
-			}, true
+			}
+			h.U, h.V = GetSphereUV(h.P.Sub(s.Center).DivN(s.Radius))
+			outwardNormal := (h.P.Sub(s.Center)).DivN(s.Radius)
+			h = h.SetFaceNormal(r, outwardNormal)
+			return h, true
 		}
 
-		temp = (-b + math.Sqrt(b*b-a*c)) / a
+		temp = (-halfB + root) / a
 		if temp < tMax && temp > tMin {
-			return HitRecord{
+			h := HitRecord{
 				T:        temp,
 				P:        r.PointAtParameter(temp),
 				Normal:   r.PointAtParameter(temp).Sub(s.Center).DivN(s.Radius),
 				Material: s.Material,
-			}, true
+			}
+
+			h.U, h.V = GetSphereUV(h.P.Sub(s.Center).DivN(s.Radius))
+
+			outwardNormal := (h.P.Sub(s.Center)).DivN(s.Radius)
+			h = h.SetFaceNormal(r, outwardNormal)
+			return h, true
 		}
 	}
 

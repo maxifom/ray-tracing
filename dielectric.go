@@ -1,42 +1,42 @@
 package main
 
-import "math/rand"
+import (
+	"math"
+	"math/rand"
+)
 
 type Dielectric struct {
 	RefIdx float64
 }
 
 func (d Dielectric) Scatter(r Ray, rec HitRecord) (scattered Ray, attenuation Vec3, hasScattered bool) {
-	var outwardNormal Vec3
-	reflected := Reflect(r.Direction, rec.Normal)
+	// Attenuation is always 1 — the glass surface absorbs nothing
 	attenuation = Vec3{1, 1, 1}
 	var niOverNt float64
-	var cosine float64
-	if Dot(r.Direction, rec.Normal) > 0 {
-		outwardNormal = rec.Normal.Negative()
+	if rec.FrontFace {
+		niOverNt = 1.0 / d.RefIdx
+	} else {
 		niOverNt = d.RefIdx
-		cosine = d.RefIdx * Dot(r.Direction, rec.Normal) / r.Direction.Length()
-	} else {
-		outwardNormal = rec.Normal
-		niOverNt = 1 / d.RefIdx
-		cosine = -Dot(r.Direction, rec.Normal) / r.Direction.Length()
 	}
 
-	var reflectProb float64
-	refracted, hasRefracted := Refract(r.Direction, outwardNormal, niOverNt)
-	if hasRefracted {
-		reflectProb = Schlick(cosine, d.RefIdx)
-		scattered = Ray{rec.P, refracted, 0}
-	} else {
+	unitDirection := r.Direction.UnitVector()
+
+	cosTheta := math.Min(Dot(unitDirection.Negative(), rec.Normal), 1.0)
+	sinTheta := math.Sqrt(1.0 - cosTheta*cosTheta)
+	if niOverNt*sinTheta > 1.0 {
+		reflected := Reflect(unitDirection, rec.Normal)
 		scattered = Ray{rec.P, reflected, 0}
-		reflectProb = 1
+		return scattered, attenuation, true
 	}
 
+	reflectProb := Schlick(cosTheta, niOverNt)
 	if rand.Float64() < reflectProb {
+		reflected := Reflect(unitDirection, rec.Normal)
 		scattered = Ray{rec.P, reflected, 0}
-	} else {
-		scattered = Ray{rec.P, refracted, 0}
+		return scattered, attenuation, true
 	}
 
+	refracted := Refract(unitDirection, rec.Normal, niOverNt)
+	scattered = Ray{rec.P, refracted, 0}
 	return scattered, attenuation, true
 }

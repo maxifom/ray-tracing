@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"image"
+	_ "image/png"
 	"log"
 	"math"
 	"math/rand"
@@ -10,19 +12,18 @@ import (
 )
 
 // Цвет который получает луч
-func Color(ray Ray, world Hittable, depth int64) Vec3 {
+func RayColor(ray Ray, world Hittable, depth int64) Vec3 {
 	record, hit := world.Hit(ray, 0.001, math.MaxFloat64)
 	if hit {
 		scattered, attenuation, hasScattered := record.Material.Scatter(ray, record)
 		if depth < 50 && hasScattered {
-			return attenuation.Mul(Color(scattered, world, depth+1))
+			return attenuation.Mul(RayColor(scattered, world, depth+1))
 		}
 		return Vec3{0, 0, 0}
 	}
 
 	unitDirection := ray.Direction.UnitVector()
 	t := 0.5*unitDirection.Y + 1.0
-
 	return Vec3{1, 1, 1}.MulN(1 - t).Add(Vec3{0.5, 0.7, 1.0}.MulN(t))
 }
 
@@ -59,6 +60,29 @@ func TwoPerlinSpheres() Hittable {
 	)
 }
 
+func TestImageTexture() Hittable {
+	f, err := os.Open("earth.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	imageData, _, err := image.Decode(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(imageData.Bounds().Size())
+
+	return NewList(
+		Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{NoiseTexture{NewPerlin(), 2}}},
+		Sphere{Vec3{0, 1, 0}, 1, Lambertian{ImageTexture{
+			Nx:   imageData.Bounds().Size().X,
+			Ny:   imageData.Bounds().Size().Y,
+			Data: imageData,
+		}}},
+	)
+}
+
 func main() {
 	file, err := os.OpenFile("output.ppm", os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
@@ -66,14 +90,15 @@ func main() {
 	}
 	defer file.Close()
 
-	width := 16 * 100
-	height := 9 * 100
-	numberOfTimes := 10
+	width := 8 * 100
+	height := 4 * 100
+	numberOfTimes := 5
 
 	fmt.Fprintf(file, "P3\n%d %d\n255\n", width, height)
 
 	// world := RandomScene()
 	world := TwoPerlinSpheres()
+	// world := TestImageTexture()
 
 	lookFrom := Vec3{13, 2, 5}
 	lookAt := Vec3{0, 0, 0}
@@ -99,7 +124,7 @@ func main() {
 				u := (float64(i) + rand.Float64()) / float64(width)
 				v := (float64(j) + rand.Float64()) / float64(height)
 				ray := cam.Ray(u, v)
-				col = col.Add(Color(ray, world, 0))
+				col = col.Add(RayColor(ray, world, 0))
 			}
 
 			col = col.DivN(float64(numberOfTimes))
@@ -108,9 +133,9 @@ func main() {
 				Y: math.Sqrt(col.Y),
 				Z: math.Sqrt(col.Z),
 			}
-			ir := int64(255.99 * col.X)
-			ig := int64(255.99 * col.Y)
-			ib := int64(255.99 * col.Z)
+			ir := int64(256 * Clamp(col.X, 0, 0.999))
+			ig := int64(256 * Clamp(col.Y, 0, 0.999))
+			ib := int64(256 * Clamp(col.Z, 0, 0.999))
 
 			fmt.Fprintf(file, "%d %d %d\n", ir, ig, ib)
 		}

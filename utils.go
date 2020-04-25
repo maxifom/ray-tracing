@@ -29,16 +29,11 @@ func Reflect(v, v1 Vec3) Vec3 {
 	return v.Sub(v1.MulN(2 * Dot(v, v1)))
 }
 
-func Refract(v, v1 Vec3, niOverNt float64) (Vec3, bool) {
-	uv := v.UnitVector()
-	dt := Dot(uv, v1)
-	discriminant := 1 - niOverNt*niOverNt*(1-dt*dt)
-
-	if discriminant <= 0 {
-		return Vec3{}, false
-
-	}
-	return uv.Sub(v1.MulN(dt)).MulN(niOverNt).Sub(v1.MulN(math.Sqrt(discriminant))), true
+func Refract(uv, n Vec3, niOverNt float64) Vec3 {
+	cosTheta := Dot(uv.Negative(), n)
+	rOutParallel := (uv.Add(n.MulN(cosTheta))).MulN(niOverNt)
+	rOutPerp := n.MulN(-math.Sqrt(1.0 - rOutParallel.SqrLength()))
+	return rOutParallel.Add(rOutPerp)
 }
 
 func Schlick(cosine, refIdx float64) float64 {
@@ -85,4 +80,28 @@ func PerlinInterpolation(c [2][2][2]Vec3, u, v, w float64) float64 {
 	}
 
 	return accum
+}
+
+func GetSphereUV(p Vec3) (u float64, v float64) {
+	phi := math.Atan2(p.Z, p.X)
+	theta := math.Asin(p.Y)
+	return 1 - (phi+math.Pi)/(2*math.Pi),
+		(theta + math.Pi/2) / math.Pi
+}
+
+func Clamp(x, min, max float64) float64 {
+	if x < min {
+		return min
+	}
+	if x > max {
+		return max
+	}
+	return x
+}
+
+func RandomUnitVector() Vec3 {
+	a := rand.Float64() * 2 * math.Pi // 0 -> 2PI
+	z := -1 + 2*rand.Float64()        // -1 -> 1
+	r := math.Sqrt(1.0 - z*z)
+	return Vec3{r * math.Cos(a), r * math.Sin(a), z}
 }
