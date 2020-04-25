@@ -2,7 +2,6 @@ package main
 
 import (
 	"image"
-	"log"
 )
 
 type ImageTexture struct {
@@ -26,8 +25,8 @@ func (it ImageTexture) Value(u, v float64, p Vec3) Vec3 {
 	if j > it.Ny-1 {
 		j = it.Ny - 1
 	}
-	log.Print(i, j)
-	r, g, b, _ := it.Data.At(3*i, 3*j).RGBA()
-	vec3 := Vec3{float64(r / 255), float64(g / 255), float64(b / 255)}
+
+	r, g, b, a := it.Data.At(i, j).RGBA()
+	vec3 := Vec3{float64(r) / float64(a), float64(g) / float64(a), float64(b) / float64(a)}
 	return vec3
 }

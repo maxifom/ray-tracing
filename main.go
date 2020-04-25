@@ -13,11 +13,16 @@ import (
 
 // Цвет который получает луч
 func RayColor(ray Ray, world Hittable, depth int64) Vec3 {
+	if depth <= 0 {
+		return Vec3{0, 0, 0}
+	}
+
 	record, hit := world.Hit(ray, 0.001, math.MaxFloat64)
 	if hit {
 		scattered, attenuation, hasScattered := record.Material.Scatter(ray, record)
-		if depth < 50 && hasScattered {
-			return attenuation.Mul(RayColor(scattered, world, depth+1))
+		if hasScattered {
+			return attenuation
+			return attenuation.Mul(RayColor(scattered, world, depth-1))
 		}
 		return Vec3{0, 0, 0}
 	}
@@ -72,10 +77,9 @@ func TestImageTexture() Hittable {
 	}
 
 	log.Println(imageData.Bounds().Size())
-
 	return NewList(
-		Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{NoiseTexture{NewPerlin(), 2}}},
-		Sphere{Vec3{0, 1, 0}, 1, Lambertian{ImageTexture{
+		// Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{NoiseTexture{NewPerlin(), 2}}},
+		Sphere{Vec3{0, 0, 0}, 2, Lambertian{ImageTexture{
 			Nx:   imageData.Bounds().Size().X,
 			Ny:   imageData.Bounds().Size().Y,
 			Data: imageData,
@@ -90,15 +94,15 @@ func main() {
 	}
 	defer file.Close()
 
-	width := 8 * 100
-	height := 4 * 100
-	numberOfTimes := 5
+	width := 16 * 100
+	height := 9 * 100
+	numberOfTimes := 1
 
 	fmt.Fprintf(file, "P3\n%d %d\n255\n", width, height)
 
 	// world := RandomScene()
-	world := TwoPerlinSpheres()
-	// world := TestImageTexture()
+	// world := TwoPerlinSpheres()
+	world := TestImageTexture()
 
 	lookFrom := Vec3{13, 2, 5}
 	lookAt := Vec3{0, 0, 0}
@@ -115,6 +119,7 @@ func main() {
 		0,
 		1,
 	)
+	const MaxDepth = 50
 
 	for j := height - 1; j >= 0; j-- {
 		log.Println(j)
@@ -124,7 +129,7 @@ func main() {
 				u := (float64(i) + rand.Float64()) / float64(width)
 				v := (float64(j) + rand.Float64()) / float64(height)
 				ray := cam.Ray(u, v)
-				col = col.Add(RayColor(ray, world, 0))
+				col = col.Add(RayColor(ray, world, MaxDepth))
 			}
 
 			col = col.DivN(float64(numberOfTimes))
