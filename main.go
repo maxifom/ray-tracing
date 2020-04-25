@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	_ "image/jpeg"
 	_ "image/png"
 	"log"
 	"math"
@@ -66,7 +67,7 @@ func TwoPerlinSpheres() Hittable {
 }
 
 func TestImageTexture() Hittable {
-	f, err := os.Open("earth.png")
+	f, err := os.Open("test.jpg")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,9 +77,7 @@ func TestImageTexture() Hittable {
 		log.Fatal(err)
 	}
 
-	log.Println(imageData.Bounds().Size())
 	return NewList(
-		// Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{NoiseTexture{NewPerlin(), 2}}},
 		Sphere{Vec3{0, 0, 0}, 2, Lambertian{ImageTexture{
 			Nx:   imageData.Bounds().Size().X,
 			Ny:   imageData.Bounds().Size().Y,
