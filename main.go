@@ -1,15 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"image"
+	"image/color"
 	_ "image/jpeg"
+	"image/png"
 	_ "image/png"
 	"log"
 	"math"
 	"math/rand"
 	"os"
 	"os/exec"
+	"sync"
 )
 
 // Цвет который получает луч
@@ -221,28 +223,57 @@ func CornellBox() Hittable {
 	)
 }
 
-func main() {
-	file, err := os.OpenFile("output.ppm", os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	if err != nil {
-		log.Panic(err)
+type Input struct {
+	X, Y int
+}
+
+func worker(width, height int, numberOfTimes int, background Vec3, world Hittable, camera Camera, image *image.RGBA, inputChan chan Input, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for input := range inputChan {
+		i := float64(input.X)
+		j := float64(height - input.Y)
+		col := Vec3{0, 0, 0}
+		for s := 0; s < numberOfTimes; s++ {
+			u := (i + rand.Float64()) / float64(width)
+			v := (j + rand.Float64()) / float64(height)
+			ray := camera.Ray(u, v)
+			col = col.Add(RayColor(ray, background, world, MaxDepth))
+		}
+
+		col = col.DivN(float64(numberOfTimes))
+		col = Vec3{
+			X: math.Sqrt(col.X),
+			Y: math.Sqrt(col.Y),
+			Z: math.Sqrt(col.Z),
+		}
+		ir := uint8(256 * Clamp(col.X, 0, 0.999))
+		ig := uint8(256 * Clamp(col.Y, 0, 0.999))
+		ib := uint8(256 * Clamp(col.Z, 0, 0.999))
+		image.SetRGBA(input.X, input.Y, color.RGBA{
+			R: ir,
+			G: ig,
+			B: ib,
+			A: 255,
+		})
 	}
-	defer file.Close()
+}
 
-	width := 100
-	height := 50
-	numberOfTimes := 20
+const MaxDepth = 50
 
+func main() {
+	width := 1920
+	height := 1080
+	outputImage := image.NewRGBA(image.Rect(0, 0, width, height))
+	numberOfTimes := 100
 	background := Vec3{0, 0, 0}
-
-	fmt.Fprintf(file, "P3\n%d %d\n255\n", width, height)
 
 	// world := RandomScene()
 	// world := TwoPerlinSpheres()
 	// world := TestImageTexture()
 	// world := DiffuseLightScene()
-	// world := CornellBox()
+	world := CornellBox()
 	// world := CornellBoxSmoke()
-	world := FinalScene()
+	// world := FinalScene()
 	lookFrom := Vec3{278, 278, -800}
 	lookAt := Vec3{278, 278, 0}
 	focusDist := 10.0
@@ -259,34 +290,36 @@ func main() {
 		0,
 		1,
 	)
-	const MaxDepth = 50
 
-	for j := height - 1; j >= 0; j-- {
-		log.Println(j)
+	workerChan := make(chan Input)
+	var wg sync.WaitGroup
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go worker(width, height, numberOfTimes, background, world, cam, outputImage, workerChan, &wg)
+	}
+
+	for j := 0; j < height; j++ {
+		log.Println(height - j)
 		for i := 0; i < width; i++ {
-			col := Vec3{0, 0, 0}
-			for s := 0; s < numberOfTimes; s++ {
-				u := (float64(i) + rand.Float64()) / float64(width)
-				v := (float64(j) + rand.Float64()) / float64(height)
-				ray := cam.Ray(u, v)
-				col = col.Add(RayColor(ray, background, world, MaxDepth))
+			workerChan <- Input{
+				X: i,
+				Y: j,
 			}
-
-			col = col.DivN(float64(numberOfTimes))
-			col = Vec3{
-				X: math.Sqrt(col.X),
-				Y: math.Sqrt(col.Y),
-				Z: math.Sqrt(col.Z),
-			}
-			ir := int64(256 * Clamp(col.X, 0, 0.999))
-			ig := int64(256 * Clamp(col.Y, 0, 0.999))
-			ib := int64(256 * Clamp(col.Z, 0, 0.999))
-
-			fmt.Fprintf(file, "%d %d %d\n", ir, ig, ib)
 		}
 	}
 
-	display := exec.Command("display", "output.ppm")
+	f, err := os.OpenFile("output.png", os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	err = png.Encode(f, outputImage)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	display := exec.Command("display", "output.png")
 	display.Stdin = os.Stdin
 	display.Stdout = os.Stdout
 	err = display.Run()
