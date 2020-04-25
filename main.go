@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"image"
+	"image/color"
 	_ "image/jpeg"
+	"image/png"
 	_ "image/png"
 	"log"
 	"math"
@@ -222,27 +223,19 @@ func CornellBox() Hittable {
 }
 
 func main() {
-	file, err := os.OpenFile("output.ppm", os.O_CREATE|os.O_WRONLY, os.ModePerm)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer file.Close()
-
-	width := 100
-	height := 50
-	numberOfTimes := 20
-
+	width := 555
+	height := 555
+	outputImage := image.NewRGBA(image.Rect(0, 0, width, height))
+	numberOfTimes := 1000
 	background := Vec3{0, 0, 0}
-
-	fmt.Fprintf(file, "P3\n%d %d\n255\n", width, height)
 
 	// world := RandomScene()
 	// world := TwoPerlinSpheres()
 	// world := TestImageTexture()
 	// world := DiffuseLightScene()
-	// world := CornellBox()
+	world := CornellBox()
 	// world := CornellBoxSmoke()
-	world := FinalScene()
+	// world := FinalScene()
 	lookFrom := Vec3{278, 278, -800}
 	lookAt := Vec3{278, 278, 0}
 	focusDist := 10.0
@@ -278,15 +271,30 @@ func main() {
 				Y: math.Sqrt(col.Y),
 				Z: math.Sqrt(col.Z),
 			}
-			ir := int64(256 * Clamp(col.X, 0, 0.999))
-			ig := int64(256 * Clamp(col.Y, 0, 0.999))
-			ib := int64(256 * Clamp(col.Z, 0, 0.999))
-
-			fmt.Fprintf(file, "%d %d %d\n", ir, ig, ib)
+			ir := uint8(255 * Clamp(col.X, 0, 1))
+			ig := uint8(255 * Clamp(col.Y, 0, 1))
+			ib := uint8(255 * Clamp(col.Z, 0, 1))
+			outputImage.SetRGBA(i, height-j, color.RGBA{
+				R: ir,
+				G: ig,
+				B: ib,
+				A: 255,
+			})
 		}
 	}
 
-	display := exec.Command("display", "output.ppm")
+	f, err := os.OpenFile("output.png", os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	err = png.Encode(f, outputImage)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	display := exec.Command("display", "output.png")
 	display.Stdin = os.Stdin
 	display.Stdout = os.Stdout
 	err = display.Run()
