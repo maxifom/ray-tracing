@@ -8,6 +8,8 @@ import (
 type ConstantMedium struct {
 	Boundary      Hittable
 	PhaseFunction Material
+
+	// -1/d в создании
 	NegInvDensity float64
 }
 

@@ -122,6 +122,79 @@ func CornellBoxSmoke() Hittable {
 
 }
 
+func FinalScene() Hittable {
+	var boxes HittableList
+	ground := Lambertian{ConstantTexture{Vec3{0.48, 0.83, 0.53}}}
+	boxesPerSide := 20
+	for i := 0; i < boxesPerSide; i++ {
+		for j := 0; j < boxesPerSide; j++ {
+			i1 := float64(i)
+			j1 := float64(j)
+			w := 100.0
+			x0 := -1000.0 + i1*w
+			z0 := -1000.0 + j1*w
+			y0 := 0.0
+			x1 := x0 + w
+			y1 := 1 + 100*rand.Float64() // 1-> 101
+			z1 := z0 + w
+
+			boxes = append(boxes, NewBox(Vec3{x0, y0, z0}, Vec3{x1, y1, z1}, ground))
+		}
+	}
+
+	var objects HittableList
+
+	objects = append(objects, NewBVHNode(boxes, int64(len(boxes)), 0, 1))
+	light := DiffuseLight{ConstantTexture{Vec3{15, 15, 15}}}
+	objects = append(objects, XZRect{123, 423, 147, 412, 554, light})
+	center1 := Vec3{400, 400, 200}
+	center2 := center1.Add(Vec3{30, 0, 0})
+
+	movingSphereMaterial := Lambertian{ConstantTexture{Vec3{0.7, 0.3, 0.1}}}
+
+	objects = append(objects, MovingSphere{center1, center2, 50, movingSphereMaterial, 0, 1})
+	objects = append(objects, Sphere{Vec3{260, 150, 45}, 50, Dielectric{1.5}})
+	objects = append(objects, Sphere{Vec3{0, 150, 145}, 50, Metal{Vec3{0.8, 0.8, 0.9}}})
+
+	boundary := Sphere{Vec3{360, 150, 145}, 70, Dielectric{1.5}}
+	objects = append(objects, boundary)
+
+	objects = append(objects, ConstantMedium{boundary, Isotropic{ConstantTexture{Vec3{0.2, 0.4, 0.9}}}, -1 / 0.2})
+	objects = append(objects, Sphere{Vec3{0, 0, 0}, 5000, Dielectric{1.5}})
+	objects = append(objects, ConstantMedium{boundary, Isotropic{ConstantTexture{Vec3{1, 1, 1}}}, -1 / 0.0001})
+
+	f, err := os.Open("earth.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	imageData, _, err := image.Decode(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	emat := Lambertian{ImageTexture{
+		Nx:   imageData.Bounds().Size().X,
+		Ny:   imageData.Bounds().Size().Y,
+		Data: imageData,
+	}}
+
+	objects = append(objects, Sphere{Vec3{400, 200, 400}, 100, emat})
+	objects = append(objects, Sphere{Vec3{220, 280, 300}, 80, Lambertian{NoiseTexture{NewPerlin(), 0.1}}})
+
+	var boxes2 HittableList
+
+	white := Lambertian{ConstantTexture{Vec3{0.73, 0.73, 0.73}}}
+	ns := 1000
+	for j := 0; j < ns; j++ {
+		boxes2 = append(boxes2, Sphere{Vec3{165 * rand.Float64(), 165 * rand.Float64(), 165 * rand.Float64()}, 10, white})
+	}
+
+	objects = append(objects, Translate{NewRotateY(NewBVHNode(boxes2, int64(len(boxes2)), 0, 1), 15), Vec3{-100, 270, 395}})
+
+	return objects
+}
+
 func CornellBox() Hittable {
 	red := Lambertian{ConstantTexture{Vec3{0.65, 0.05, 0.05}}}
 	white := Lambertian{ConstantTexture{Vec3{0.73, 0.73, 0.73}}}
@@ -155,9 +228,9 @@ func main() {
 	}
 	defer file.Close()
 
-	width := 16 * 100
-	height := 9 * 100
-	numberOfTimes := 10
+	width := 100
+	height := 50
+	numberOfTimes := 20
 
 	background := Vec3{0, 0, 0}
 
@@ -168,7 +241,8 @@ func main() {
 	// world := TestImageTexture()
 	// world := DiffuseLightScene()
 	// world := CornellBox()
-	world := CornellBoxSmoke()
+	// world := CornellBoxSmoke()
+	world := FinalScene()
 	lookFrom := Vec3{278, 278, -800}
 	lookAt := Vec3{278, 278, 0}
 	focusDist := 10.0
