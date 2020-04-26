@@ -12,6 +12,8 @@ import (
 	"os/exec"
 	"sync"
 	"time"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 // Цвет который получает луч
@@ -50,7 +52,7 @@ func RayColor(r Ray, background Vec3, world Hittable, lights Hittable, depth int
 		)
 }
 
-func CornellBoxNew(aspect float64) (Hittable, Camera) {
+func CornellBox(aspect float64) (Hittable, Camera, Hittable) {
 	var world HittableList
 
 	red := Lambertian{ConstantTexture{Vec3{.65, .05, .05}}}
@@ -84,8 +86,13 @@ func CornellBoxNew(aspect float64) (Hittable, Camera) {
 	t0 := 0.0
 	t1 := 1.1
 
+	lights := NewList(
+		XZRect{213, 343, 227, 332, 554, nil},
+		Sphere{Vec3{190, 90, 190}, 90, nil},
+	)
+
 	cam := NewCamera(lookFrom, lookAt, up, vFov, aspect, aperture, distToFocus, t0, t1)
-	return world, cam
+	return world, cam, lights
 }
 
 type Input struct {
@@ -127,18 +134,18 @@ const MaxDepth = 50
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+
 	width := 555
 	height := 555
+	count := width * height
+	bar := pb.Full.Start(count)
+
 	outputImage := image.NewRGBA(image.Rect(0, 0, width, height))
-	numberOfSamples := 1000
+	numberOfSamples := 100
 	background := Vec3{0, 0, 0}
 
-	world, cam := CornellBoxNew(1)
+	world, cam, lights := CornellBox(1)
 
-	lights := NewList(
-		XZRect{213, 343, 227, 332, 554, nil},
-		Sphere{Vec3{190, 90, 190}, 90, nil},
-	)
 	workerChan := make(chan Input)
 	var wg sync.WaitGroup
 	for i := 0; i < 8; i++ {
@@ -146,18 +153,25 @@ func main() {
 		go worker(width, height, numberOfSamples, background, world, cam, outputImage, workerChan, &wg, lights)
 	}
 
+	t := time.Now()
 	for j := 0; j < height; j++ {
-		log.Println(height - j)
 		for i := 0; i < width; i++ {
 			workerChan <- Input{
 				X: i,
 				Y: j,
 			}
+
+			bar.Increment()
 		}
 	}
 
 	close(workerChan)
 	wg.Wait()
+	bar.Finish()
+
+	seconds := time.Since(t).Seconds()
+	log.Printf("Finished in %.2f seconds: Average speed: %.2f/s", seconds, float64(count)/seconds)
+
 	f, err := os.OpenFile("output.png", os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
