@@ -41,7 +41,7 @@ func (r XZRect) PDFValue(o, v Vec3) float64 {
 		return 0
 	}
 
-	area := (r.X1 - r.X0) / (r.Z1 - r.Z0)
+	area := (r.X1 - r.X0) * (r.Z1 - r.Z0)
 	distanceSquared := rec.T * rec.T * v.SqrLength()
 	cosine := math.Abs(Dot(v, rec.Normal)) / v.Length()
 	return distanceSquared / (cosine * area)

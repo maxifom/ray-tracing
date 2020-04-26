@@ -1,5 +1,6 @@
 package main
 
+/*
 import (
 	"image"
 	"image/color"
@@ -197,3 +198,4 @@ func main() {
 		log.Panic(err)
 	}
 }
+*/

@@ -6,7 +6,7 @@ type DiffuseLight struct {
 
 func (d DiffuseLight) Emitted(rIn Ray, u, v float64, rec HitRecord, p Vec3) Vec3 {
 	// We also need to flip the light so its normals point in the -y direction
-	if !rec.FrontFace {
+	if rec.FrontFace {
 		return d.Emit.Value(u, v, p)
 	}
 
