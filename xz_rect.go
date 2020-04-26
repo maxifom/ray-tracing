@@ -49,5 +49,5 @@ func (r XZRect) PDFValue(o, v Vec3) float64 {
 
 func (r XZRect) Random(o Vec3) Vec3 {
 	randomPoint := Vec3{RandomDouble(r.X0, r.X1), r.Y, RandomDouble(r.Z0, r.Z1)}
-	return randomPoint.Sub(o)
+	return randomPoint.Sub(o).UnitVector()
 }

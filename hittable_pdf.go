@@ -1,8 +1,8 @@
 package main
 
 type HittablePDF struct {
-	O Vec3
 	H Hittable
+	O Vec3
 }
 
 func (p HittablePDF) Value(direction Vec3) float64 {

@@ -1,5 +1,9 @@
 package main
 
+import (
+	"math"
+)
+
 type HittableList []Hittable
 
 func NewList(h ...Hittable) HittableList {
@@ -28,20 +32,20 @@ func (hl HittableList) BoundingBox(t0, t1 float64) (AABB, bool) {
 	}
 	var outputBox AABB
 
-	box, isBounded := hl[0].BoundingBox(t0, t1)
+	tempBox, isBounded := hl[0].BoundingBox(t0, t1)
 	if !isBounded {
 		return AABB{}, false
 	}
 
-	outputBox = box
+	outputBox = tempBox
 
 	for _, h := range hl {
-		box, isBounded = h.BoundingBox(t0, t1)
+		tempBox, isBounded = h.BoundingBox(t0, t1)
 		if !isBounded {
 			return AABB{}, false
 		}
 
-		outputBox = SurroundingBox(outputBox, box)
+		outputBox = SurroundingBox(outputBox, tempBox)
 	}
 
 	return outputBox, true
@@ -61,5 +65,6 @@ func (hl HittableList) Random(o Vec3) Vec3 {
 	if len(hl) == 0 {
 		return Vec3{1, 0, 0}
 	}
-	return hl[int(RandomDouble(0.0, float64(len(hl)-1)))].Random(o)
+	index := int(math.Round(RandomDouble(0.0, float64(len(hl)-1))))
+	return hl[index].Random(o)
 }

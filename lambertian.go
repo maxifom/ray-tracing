@@ -10,6 +10,7 @@ func (l Lambertian) Scatter(r Ray, rec HitRecord) (scattered ScatterRecord, hasS
 	scattered.IsSpecular = false
 	scattered.Attenuation = l.Albedo.Value(rec.U, rec.V, rec.P)
 	scattered.PDF = CosinePDF{NewONB(rec.Normal)}
+
 	return scattered, true
 	// onb := NewONB(rec.Normal)
 	// direction := onb.Local(RandomCosineDirection())

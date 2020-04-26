@@ -27,10 +27,10 @@ func (p CosinePDF) Generate() Vec3 {
 type DefaultPDF struct {
 }
 
-func (d DefaultPDF) Value(direction Vec3) float64 {
+func (DefaultPDF) Value(Vec3) float64 {
 	return 0
 }
 
-func (d DefaultPDF) Generate() Vec3 {
+func (DefaultPDF) Generate() Vec3 {
 	return Vec3{}
 }

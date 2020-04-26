@@ -46,10 +46,14 @@ func RayColor(r Ray, background Vec3, world Hittable, lights Hittable, depth int
 	p := MixturePDF{light, srec.PDF}
 	scattered := Ray{rec.P, p.Generate(), r.Time}
 	pdfVal := p.Value(scattered.Direction)
+
+	pdf := rec.Material.ScatteringPDF(r, rec, scattered)
+	// fmt.Println(scattered.Direction, " ", pdfVal, " ", pdf, " ", srec.Attenuation)
+
 	return emitted.
 		Add(
 			srec.Attenuation.
-				MulN(rec.Material.ScatteringPDF(r, rec, scattered)).
+				MulN(pdf).
 				Mul(RayColor(scattered, background, world, lights, depth-1)).
 				DivN(pdfVal),
 		)
@@ -134,11 +138,11 @@ func main() {
 	numberOfSamples := 10
 	background := Vec3{0, 0, 0}
 
-	world, cam := CornellBoxNew(float64(width) / float64(height))
+	world, cam := CornellBoxNew(1)
 
-	light := DiffuseLight{ConstantTexture{Vec3{15, 15, 15}}}
 	lights := NewList(
-		XZRect{213, 343, 227, 332, 554, light},
+		XZRect{213, 343, 227, 332, 554, nil},
+		Sphere{Vec3{190, 90, 190}, 90, nil},
 	)
 	workerChan := make(chan Input)
 	var wg sync.WaitGroup
