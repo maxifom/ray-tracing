@@ -18,8 +18,8 @@ func (A AABB) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 		return HitRecord{}, false
 	}
 
-	y := (A.Min.X - r.Origin.Y) / r.Direction.Y
-	y1 := (A.Max.X - r.Origin.Y) / r.Direction.Y
+	y := (A.Min.Y - r.Origin.Y) / r.Direction.Y
+	y1 := (A.Max.Y - r.Origin.Y) / r.Direction.Y
 	t0 = math.Min(y, y1)
 	t1 = math.Max(y, y1)
 
@@ -29,8 +29,8 @@ func (A AABB) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 		return HitRecord{}, false
 	}
 
-	z := (A.Min.X - r.Origin.Z) / r.Direction.Z
-	z1 := (A.Max.X - r.Origin.Z) / r.Direction.Z
+	z := (A.Min.Z - r.Origin.Z) / r.Direction.Z
+	z1 := (A.Max.Z - r.Origin.Z) / r.Direction.Z
 	t0 = math.Min(x, x1)
 	t1 = math.Max(x, x1)
 
