@@ -16,6 +16,11 @@ import (
 )
 
 var a = uint64(0)
+var fromBackground = uint64(0)
+var fromSpecular = uint64(0)
+var fromEmitted = uint64(0)
+var full = uint64(0)
+var fullNormal = uint64(0)
 
 // Цвет который получает луч
 func RayColor(r Ray, background Vec3, world Hittable, lights Hittable, depth int64) Vec3 {
@@ -28,16 +33,19 @@ func RayColor(r Ray, background Vec3, world Hittable, lights Hittable, depth int
 		if depth == 50 {
 			atomic.AddUint64(&a, 1)
 		}
+		atomic.AddUint64(&fromBackground, 1)
 		return background
 	}
 
 	emitted := rec.Material.Emitted(r, rec.U, rec.V, rec, rec.P)
 	srec, isScattered := rec.Material.Scatter(r, rec)
 	if !isScattered {
+		atomic.AddUint64(&fromEmitted, 1)
 		return emitted
 	}
 
 	if srec.IsSpecular {
+		atomic.AddUint64(&fromSpecular, 1)
 		return srec.Attenuation.
 			Mul(RayColor(srec.Ray, background, world, lights, depth-1))
 	}
@@ -49,14 +57,19 @@ func RayColor(r Ray, background Vec3, world Hittable, lights Hittable, depth int
 
 	pdf := rec.Material.ScatteringPDF(r, rec, scattered)
 	// fmt.Println(scattered.Direction, " ", pdfVal, " ", pdf, " ", srec.Attenuation)
-
-	return emitted.
+	atomic.AddUint64(&full, 1)
+	col := emitted.
 		Add(
 			srec.Attenuation.
 				MulN(pdf).
 				Mul(RayColor(scattered, background, world, lights, depth-1)).
 				DivN(pdfVal),
 		)
+	if col.X > 0.001 && col.Y > 0.001 && col.Z > 0.001 {
+		atomic.AddUint64(&fullNormal, 1)
+		// fmt.Println("full ", col)
+	}
+	return col
 }
 
 func CornellBoxNew(aspect float64) (Hittable, Camera) {
@@ -160,7 +173,11 @@ func main() {
 			}
 		}
 	}
-	log.Println("not hit ", a, width*height, float64(a)/float64(width*height)*100)
+
+	close(workerChan)
+	wg.Wait()
+	log.Println("not hit ", a, width*height, float64(a)/float64(width*height*numberOfSamples)*100)
+	log.Println(fromBackground, fromSpecular, fromEmitted, full, fullNormal)
 	f, err := os.OpenFile("output.png", os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)

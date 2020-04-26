@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // Реализация трехмерного вектора
 type Vec3 struct {
@@ -90,4 +93,8 @@ func Cross(v, v1 Vec3) Vec3 {
 		Y: v.Z*v1.X - v.X*v1.Z,
 		Z: v.X*v1.Y - v.Y*v1.X,
 	}
+}
+
+func (v Vec3) String() string {
+	return fmt.Sprintf("%.4f %.4f %.4f", v.X, v.Y, v.Z)
 }

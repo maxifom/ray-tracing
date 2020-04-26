@@ -13,7 +13,7 @@ func (A AABB) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 	t1 := math.Max(x, x1)
 
 	tMin = math.Max(t0, tMin)
-	tMax = math.Max(t1, tMax)
+	tMax = math.Min(t1, tMax)
 	if tMax <= tMin {
 		return HitRecord{}, false
 	}
@@ -24,7 +24,7 @@ func (A AABB) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 	t1 = math.Max(y, y1)
 
 	tMin = math.Max(t0, tMin)
-	tMax = math.Max(t1, tMax)
+	tMax = math.Min(t1, tMax)
 	if tMax <= tMin {
 		return HitRecord{}, false
 	}
@@ -35,7 +35,7 @@ func (A AABB) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 	t1 = math.Max(z, z1)
 
 	tMin = math.Max(z, tMin)
-	tMax = math.Max(z1, tMax)
+	tMax = math.Min(z1, tMax)
 	if tMax <= tMin {
 		return HitRecord{}, false
 	}

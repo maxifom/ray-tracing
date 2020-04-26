@@ -86,6 +86,7 @@ func NewRotateY(h Hittable, angle float64) RotateY {
 		}
 	}
 
+	bbox = AABB{min, max}
 	return RotateY{
 		H:        h,
 		SinTheta: sinTheta,

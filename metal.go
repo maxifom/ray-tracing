@@ -2,14 +2,15 @@ package main
 
 type Metal struct {
 	Albedo Vec3
+	Fuzz   float64
 }
 
 func (m Metal) Scatter(r Ray, rec HitRecord) (scattered ScatterRecord, hasScattered bool) {
 	reflected := Reflect(r.Direction.UnitVector(), rec.Normal)
-	scattered.Ray = Ray{rec.P, reflected.Add(RandomInUnitSphere()), 0.0}
+	scattered.Ray = Ray{rec.P, reflected.Add(RandomInUnitSphere().MulN(m.Fuzz)), r.Time}
 	scattered.Attenuation = m.Albedo
 	scattered.IsSpecular = true
-	scattered.PDF = DefaultPDF{}
+	scattered.PDF = nil
 	return scattered, true
 }
 

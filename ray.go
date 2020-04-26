@@ -14,5 +14,5 @@ func (r Ray) PointAtParameter(t float64) Vec3 {
 }
 
 func (r Ray) String() string {
-	return fmt.Sprintf("Ray {Origin: %#v, Direction: %#v, Time: %.1f}", r.Origin, r.Direction, r.Time)
+	return fmt.Sprintf("Ray {O: %s, D: %s}", r.Origin, r.Direction)
 }

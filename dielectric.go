@@ -11,7 +11,7 @@ type Dielectric struct {
 
 func (d Dielectric) Scatter(r Ray, rec HitRecord) (scattered ScatterRecord, hasScattered bool) {
 	scattered.IsSpecular = true
-	scattered.PDF = DefaultPDF{}
+	scattered.PDF = nil
 
 	// Attenuation is always 1 — the glass surface absorbs nothing
 	scattered.Attenuation = Vec3{1, 1, 1}
