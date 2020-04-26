@@ -31,8 +31,8 @@ func (A AABB) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 
 	z := (A.Min.Z - r.Origin.Z) / r.Direction.Z
 	z1 := (A.Max.Z - r.Origin.Z) / r.Direction.Z
-	t0 = math.Min(x, x1)
-	t1 = math.Max(x, x1)
+	t0 = math.Min(z, z1)
+	t1 = math.Max(z, z1)
 
 	tMin = math.Max(z, tMin)
 	tMax = math.Max(z1, tMax)
