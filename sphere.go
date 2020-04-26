@@ -58,9 +58,18 @@ func (s Sphere) BoundingBox(t0, t1 float64) (AABB, bool) {
 }
 
 func (s Sphere) PDFValue(o, v Vec3) float64 {
-	return 0
+	_, isHit := s.Hit(Ray{o, v, 0}, 0.001, math.Inf(1))
+	if !isHit {
+		return 0
+	}
+	cosThetaMax := math.Sqrt(1.0 - s.Radius*s.Radius/(s.Center.Sub(o).SqrLength()))
+	solidAngle := 2 * math.Pi * (1 - cosThetaMax)
+	return 1 / solidAngle
 }
 
 func (s Sphere) Random(o Vec3) Vec3 {
-	return Vec3{1, 0, 0}
+	direction := s.Center.Sub(o)
+	distanceSquared := direction.SqrLength()
+	onb := NewONB(direction)
+	return onb.Local(RandomToSphere(s.Radius, distanceSquared))
 }

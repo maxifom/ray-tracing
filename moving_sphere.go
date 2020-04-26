@@ -26,7 +26,7 @@ func (s MovingSphere) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 	c := oc.SqrLength() - s.Radius*s.Radius
 	discriminant := halfB*halfB - a*c
 	if discriminant > 0 {
-		root := math.Sqrt(halfB*halfB - a*c)
+		root := math.Sqrt(discriminant)
 		temp := (-halfB - root) / a
 		if temp < tMax && temp > tMin {
 			h := HitRecord{

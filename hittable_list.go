@@ -23,13 +23,43 @@ func (hl HittableList) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 }
 
 func (hl HittableList) BoundingBox(t0, t1 float64) (AABB, bool) {
-	return NewBVHNode(hl, int64(len(hl)), t0, t1).BoundingBox(t0, t1)
+	if len(hl) == 0 {
+		return AABB{}, false
+	}
+	var outputBox AABB
+
+	box, isBounded := hl[0].BoundingBox(t0, t1)
+	if !isBounded {
+		return AABB{}, false
+	}
+
+	outputBox = box
+
+	for _, h := range hl {
+		box, isBounded = h.BoundingBox(t0, t1)
+		if !isBounded {
+			return AABB{}, false
+		}
+
+		outputBox = SurroundingBox(outputBox, box)
+	}
+
+	return outputBox, true
 }
 
 func (hl HittableList) PDFValue(o, v Vec3) float64 {
-	return 0
+	weight := 1.0 / float64(len(hl))
+	sum := 0.0
+	for _, h := range hl {
+		sum += weight * h.PDFValue(o, v)
+	}
+
+	return sum
 }
 
 func (hl HittableList) Random(o Vec3) Vec3 {
-	return Vec3{1, 0, 0}
+	if len(hl) == 0 {
+		return Vec3{1, 0, 0}
+	}
+	return hl[int(RandomDouble(0.0, float64(len(hl)-1)))].Random(o)
 }

@@ -119,3 +119,14 @@ func RandomCosineDirection() Vec3 {
 func RandomDouble(a, b float64) float64 {
 	return a + (b-a)*rand.Float64()
 }
+
+func RandomToSphere(radius, distanceSquared float64) Vec3 {
+	r1 := rand.Float64()
+	r2 := rand.Float64()
+	z := 1 + r2*(math.Sqrt(1.0-radius*radius/distanceSquared)-1)
+
+	phi := 2 * math.Pi * r1
+	x := math.Cos(phi) * math.Sqrt(1-z*z)
+	y := math.Sin(phi) * math.Sqrt(1-z*z)
+	return Vec3{x, y, z}
+}

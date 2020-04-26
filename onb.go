@@ -15,12 +15,14 @@ func NewONB(n Vec3) ONB {
 	} else {
 		a = Vec3{1, 0, 0}
 	}
-	o.V = Cross(o.W, a)
+	o.V = Cross(o.W, a).UnitVector()
 	o.U = Cross(o.W, o.V)
 
 	return o
 }
 
 func (o ONB) Local(v Vec3) Vec3 {
-	return o.U.MulN(v.X).Add(o.V.MulN(v.Y)).Add(o.W.MulN(v.Z))
+	return o.U.MulN(v.X).
+		Add(o.V.MulN(v.Y)).
+		Add(o.W.MulN(v.Z))
 }

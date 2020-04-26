@@ -2,7 +2,6 @@ package main
 
 import (
 	"math"
-	"math/rand"
 )
 
 type Camera struct {
@@ -44,15 +43,18 @@ func NewCamera(lookFrom, lookAt, vUp Vec3, vFov, aspect, aperture, focusDist, t0
 	}
 }
 
-func (c Camera) Ray(u, v float64) Ray {
+func (c Camera) Ray(s, t float64) Ray {
+	rd := RandomInUnitDisk().MulN(c.LensRadius)
+	offset := c.U.MulN(rd.X).Add(c.V.MulN(rd.Y))
 	return Ray{
-		Origin: c.Origin,
+		Origin: c.Origin.Add(offset),
 		Direction: c.LowerLeftCorner.
 			Add(c.Horizontal.
-				MulN(u)).
+				MulN(s)).
 			Add(c.Vertical.
-				MulN(v)).
-			Sub(c.Origin),
-		Time: c.Time0 + rand.Float64()*(c.Time1-c.Time0),
+				MulN(t)).
+			Sub(c.Origin).
+			Sub(offset),
+		Time: RandomDouble(c.Time0, c.Time1),
 	}
 }
