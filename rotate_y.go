@@ -44,6 +44,14 @@ func (ry RotateY) BoundingBox(t0, t1 float64) (AABB, bool) {
 	return ry.BBox, ry.HasBox
 }
 
+func (ry RotateY) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (ry RotateY) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}
+
 func NewRotateY(h Hittable, angle float64) RotateY {
 	radians := angle * (math.Pi / 180.0)
 	sinTheta := math.Sin(radians)
@@ -78,6 +86,7 @@ func NewRotateY(h Hittable, angle float64) RotateY {
 		}
 	}
 
+	bbox = AABB{min, max}
 	return RotateY{
 		H:        h,
 		SinTheta: sinTheta,

@@ -29,3 +29,11 @@ func (b Box) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 func (b Box) BoundingBox(t0, t1 float64) (AABB, bool) {
 	return AABB{b.BoxMin, b.BoxMax}, true
 }
+
+func (b Box) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (b Box) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}

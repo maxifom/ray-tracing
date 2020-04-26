@@ -29,3 +29,11 @@ func (t Translate) BoundingBox(t0, t1 float64) (AABB, bool) {
 		Max: box.Max.Add(t.Offset),
 	}, true
 }
+
+func (t Translate) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (t Translate) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}

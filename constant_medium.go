@@ -61,3 +61,11 @@ func (c ConstantMedium) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 func (c ConstantMedium) BoundingBox(t0, t1 float64) (AABB, bool) {
 	return c.Boundary.BoundingBox(t0, t1)
 }
+
+func (c ConstantMedium) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (c ConstantMedium) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}

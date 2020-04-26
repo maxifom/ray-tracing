@@ -16,22 +16,22 @@ func RandomInUnitSphere() Vec3 {
 }
 
 func RandomInUnitDisk() Vec3 {
-	p := Vec3{rand.Float64(), rand.Float64(), 0}.MulN(2).Sub(Vec3{1, 1, 0})
+	p := Vec3{RandomDouble(-1, 1), RandomDouble(-1, 1), 0}
 
-	for Dot(p, p) >= 1 {
-		p = Vec3{rand.Float64(), rand.Float64(), 0}.MulN(2).Sub(Vec3{1, 1, 0})
+	for p.SqrLength() >= 1 {
+		p = Vec3{RandomDouble(-1, 1), RandomDouble(-1, 1), 0}
 	}
 
 	return p
 }
 
-func Reflect(v, v1 Vec3) Vec3 {
-	return v.Sub(v1.MulN(2 * Dot(v, v1)))
+func Reflect(v, n Vec3) Vec3 {
+	return v.Sub(n.MulN(2 * Dot(v, n)))
 }
 
-func Refract(uv, n Vec3, niOverNt float64) Vec3 {
-	cosTheta := Dot(uv.Negative(), n)
-	rOutParallel := (uv.Add(n.MulN(cosTheta))).MulN(niOverNt)
+func Refract(uv, n Vec3, etaiOverEtat float64) Vec3 {
+	cosTheta := math.Min(Dot(uv.Negative(), n), 1.0)
+	rOutParallel := (uv.Add(n.MulN(cosTheta))).MulN(etaiOverEtat)
 	rOutPerp := n.MulN(-math.Sqrt(1.0 - rOutParallel.SqrLength()))
 	return rOutParallel.Add(rOutPerp)
 }
@@ -51,9 +51,9 @@ func SurroundingBox(box, box1 AABB) AABB {
 	}
 
 	big := Vec3{
-		math.Max(box.Min.X, box1.Min.X),
-		math.Max(box.Min.Y, box1.Min.Y),
-		math.Max(box.Min.Z, box1.Min.Z),
+		math.Max(box.Max.X, box1.Max.X),
+		math.Max(box.Max.Y, box1.Max.Y),
+		math.Max(box.Max.Z, box1.Max.Z),
 	}
 
 	return AABB{small, big}
@@ -104,4 +104,29 @@ func RandomUnitVector() Vec3 {
 	z := -1 + 2*rand.Float64()        // -1 -> 1
 	r := math.Sqrt(1.0 - z*z)
 	return Vec3{r * math.Cos(a), r * math.Sin(a), z}
+}
+
+func RandomCosineDirection() Vec3 {
+	r1 := rand.Float64()
+	r2 := rand.Float64()
+	z := math.Sqrt(1.0 - r2)
+	phi := 2 * math.Pi * r1
+	x := math.Cos(phi) * math.Sqrt(r2)
+	y := math.Sin(phi) * math.Sqrt(r2)
+	return Vec3{x, y, z}
+}
+
+func RandomDouble(a, b float64) float64 {
+	return a + (b-a)*rand.Float64()
+}
+
+func RandomToSphere(radius, distanceSquared float64) Vec3 {
+	r1 := rand.Float64()
+	r2 := rand.Float64()
+	z := 1 + r2*(math.Sqrt(1.0-radius*radius/distanceSquared)-1)
+
+	phi := 2 * math.Pi * r1
+	x := math.Cos(phi) * math.Sqrt(1-z*z)
+	y := math.Sin(phi) * math.Sqrt(1-z*z)
+	return Vec3{x, y, z}
 }

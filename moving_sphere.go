@@ -26,7 +26,7 @@ func (s MovingSphere) Hit(r Ray, tMin, tMax float64) (HitRecord, bool) {
 	c := oc.SqrLength() - s.Radius*s.Radius
 	discriminant := halfB*halfB - a*c
 	if discriminant > 0 {
-		root := math.Sqrt(halfB*halfB - a*c)
+		root := math.Sqrt(discriminant)
 		temp := (-halfB - root) / a
 		if temp < tMax && temp > tMin {
 			h := HitRecord{
@@ -71,4 +71,12 @@ func (s MovingSphere) BoundingBox(t0, t1 float64) (AABB, bool) {
 	}
 
 	return SurroundingBox(box0, box1), true
+}
+
+func (s MovingSphere) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (s MovingSphere) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
 }

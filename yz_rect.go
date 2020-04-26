@@ -32,3 +32,11 @@ func (r YZRect) Hit(ray Ray, tMin, tMax float64) (HitRecord, bool) {
 func (r YZRect) BoundingBox(t0, t1 float64) (AABB, bool) {
 	return AABB{Vec3{r.X - 0.0001, r.Y0, r.Z0}, Vec3{r.X + 0.0001, r.Y1, r.Z1}}, true
 }
+
+func (r YZRect) PDFValue(o, v Vec3) float64 {
+	return 0
+}
+
+func (r YZRect) Random(o Vec3) Vec3 {
+	return Vec3{1, 0, 0}
+}
