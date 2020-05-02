@@ -1,4 +1,4 @@
-module ray-tracing-3
+module ray-tracing
 
 go 1.14
 
