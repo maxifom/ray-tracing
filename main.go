@@ -141,7 +141,7 @@ func main() {
 	bar := pb.Full.Start(count)
 
 	outputImage := image.NewRGBA(image.Rect(0, 0, width, height))
-	numberOfSamples := 100
+	numberOfSamples := 10
 	background := Vec3{0, 0, 0}
 
 	world, cam, lights := CornellBox(1)

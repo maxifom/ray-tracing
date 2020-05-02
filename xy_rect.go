@@ -1,5 +1,7 @@
 package main
 
+import "math"
+
 type XYRect struct {
 	X0, X1, Y0, Y1, Z float64
 	Material          Material
@@ -34,9 +36,18 @@ func (r XYRect) BoundingBox(t0, t1 float64) (AABB, bool) {
 }
 
 func (r XYRect) PDFValue(o, v Vec3) float64 {
-	return 0
+	rec, isHit := r.Hit(Ray{o, v, 0}, 0.001, math.Inf(1))
+	if !isHit {
+		return 0
+	}
+
+	area := (r.Y1 - r.Y0) * (r.X1 - r.X0)
+	distanceSquared := rec.T * rec.T * v.SqrLength()
+	cosine := math.Abs(Dot(v, rec.Normal)) / v.Length()
+	return distanceSquared / (cosine * area)
 }
 
 func (r XYRect) Random(o Vec3) Vec3 {
-	return Vec3{1, 0, 0}
+	randomPoint := Vec3{RandomDouble(r.X0, r.X1), RandomDouble(r.Y0, r.Y1), r.Z}
+	return randomPoint.Sub(o).UnitVector()
 }
