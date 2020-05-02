@@ -46,7 +46,7 @@ func CornellBox(width, height int) (scene Scene) {
 	aperture := 0.0
 	vFov := 40.0
 	t0 := 0.0
-	t1 := 1.1
+	t1 := 1.0
 
 	scene.Lights = NewList(
 		XZRect{213, 343, 227, 332, 554, nil},

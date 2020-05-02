@@ -21,15 +21,16 @@ func NewOctahedron(center Vec3, radius float64, m Material) Octahedron {
 	d := Vec3{center.X, -radius + center.Y, center.Z}
 	e := Vec3{center.X, center.Y, radius + center.Z}
 	f := Vec3{center.X, center.Y, -radius + center.Z}
-	triangles := NewList(
-		FlipFace{NewTriangle(a, e, d, m)},
-		FlipFace{NewTriangle(b, d, e, m)},
-		NewTriangle(a, c, e, m), // +
-		NewTriangle(e, b, c, m), // +
-		FlipFace{NewTriangle(f, d, a, m)},
-		NewTriangle(a, c, f, m), // +
-		FlipFace{NewTriangle(f, c, b, m)},
-		NewTriangle(f, b, d, m), // +
+	triangles := make(HittableList, 0, 8)
+	triangles = NewList(
+		NewTriangle(a, e, d, m),
+		NewTriangle(b, d, e, m),
+		NewTriangle(a, c, e, m),
+		NewTriangle(e, b, c, m),
+		NewTriangle(f, d, a, m),
+		NewTriangle(a, c, f, m),
+		NewTriangle(f, c, b, m),
+		NewTriangle(f, b, d, m),
 	)
 
 	return Octahedron{Center: center, Radius: radius, triangles: triangles, Material: m}

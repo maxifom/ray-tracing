@@ -29,9 +29,9 @@ const MaxDepth = 50
 
 func main() {
 	var opts struct {
-		Width             int    `long:"width" default:"555"`
-		Height            int    `long:"height" default:"555"`
-		NumberOfSamples   int    `long:"number_of_samples" default:"100"`
+		Width             int    `long:"width" default:"600"`
+		Height            int    `long:"height" default:"600"`
+		NumberOfSamples   int    `long:"number_of_samples" default:"10"`
 		OutputFileName    string `long:"output_file_name" default:"output.png"`
 		ShowAfterComplete int    `long:"show_after_complete" default:"1"`
 		NumberOfWorkers   int    `long:"number_of_workers" default:"4"`
