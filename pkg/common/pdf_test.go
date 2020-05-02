@@ -4,7 +4,9 @@ import (
 	"math"
 	"testing"
 
-	"ray-tracing/pkg/pdf"
+	. "ray-tracing/pkg/hittable"
+	. "ray-tracing/pkg/pdf"
+	. "ray-tracing/pkg/vec3"
 )
 
 func TestCosinePDF_Value(t *testing.T) {
@@ -18,7 +20,7 @@ func TestCosinePDF_Value(t *testing.T) {
 
 func TestHittablePDF_Value(t *testing.T) {
 	h := XZRect{0, 100, 0, 200, 100, nil}
-	c := pdf.HittablePDF{O: Vec3{1.23, 5.66, 3.123}, H: h}
+	c := HittablePDF{O: Vec3{1.23, 5.66, 3.123}, H: h}
 	v := c.Value(Vec3{2, 3, 5})
 
 	if math.Abs(v-3.86077) > 1e-6 {

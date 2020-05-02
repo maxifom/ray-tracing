@@ -2,6 +2,8 @@ package hittable
 
 import (
 	"testing"
+
+	. "ray-tracing/pkg/vec3"
 )
 
 func TestNewONB(t *testing.T) {
