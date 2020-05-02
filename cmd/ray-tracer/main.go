@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"time"
@@ -31,11 +32,11 @@ func main() {
 	var opts struct {
 		Width             int    `long:"width" default:"600"`
 		Height            int    `long:"height" default:"600"`
-		NumberOfSamples   int    `long:"number_of_samples" default:"100"`
+		NumberOfSamples   int    `long:"number_of_samples" default:"25"`
 		OutputFileName    string `long:"output_file_name" default:"output.png"`
 		ShowAfterComplete int    `long:"show_after_complete" default:"1"`
-		NumberOfWorkers   int    `long:"number_of_workers" default:"4"`
-		Scene             string `long:"scene" default:"cornell_box_octahedron"`
+		NumberOfWorkers   int    `long:"number_of_workers" default:"-1"`
+		Scene             string `long:"scene" default:"simple_scene"`
 	}
 
 	_, err := flags.Parse(&opts)
@@ -43,10 +44,14 @@ func main() {
 		log.Fatalf("failed to parse flags: %s", err)
 	}
 
+	log.SetOutput(os.Stdout)
+
 	numberOfWorkers := opts.NumberOfWorkers
 	if numberOfWorkers == -1 {
 		numberOfWorkers = runtime.NumCPU()
 	}
+
+	log.Printf("Using %d workers", numberOfWorkers)
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -63,9 +68,15 @@ func main() {
 		scene = scenes.CornellBox(width, height)
 	case "cornell_box_octahedron":
 		scene = scenes.CornellBoxOctahedron(width, height)
+	case "simple_scene":
+		scene = scenes.SimpleScene(width, height)
 	default:
 		scene = scenes.CornellBox(width, height)
 	}
+
+	log.Printf("Image dimensions: %dx%d, number of samples: %d", scene.Width, scene.Height, numberOfSamples)
+	abs, _ := filepath.Abs(opts.OutputFileName)
+	log.Printf("Output file: %s", abs)
 	outputImage := image.NewRGBA(image.Rect(0, 0, scene.Width, scene.Height))
 	count := scene.Width * scene.Height
 	progressBar := pb.Full.Start(count)
