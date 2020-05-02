@@ -19,7 +19,7 @@ func SimpleScene(width, height int) (scene Scene) {
 	aspect := 16.0 / 9.0
 	scene.Height = int(float64(scene.Width) / aspect)
 
-	scene.World = append(scene.World, Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{ConstantTexture{Vec3{.5, .5, .5}}}})
+	scene.World = append(scene.World, Sphere{Vec3{0, -1000, 0}, 1000, Lambertian{CheckerTexture{ConstantTexture{Vec3{0, 0, 0}}, ConstantTexture{Vec3{1, 1, 1}}}}})
 	light := Sphere{Vec3{0, 10, 0}, 5, DiffuseLight{ConstantTexture{Vec3{8, 8, 8}}}}
 	scene.World = append(scene.World, light)
 	for a := -11; a < 11; a++ {
