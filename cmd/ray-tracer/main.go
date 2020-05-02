@@ -31,11 +31,11 @@ func main() {
 	var opts struct {
 		Width             int    `long:"width" default:"555"`
 		Height            int    `long:"height" default:"555"`
-		NumberOfSamples   int    `long:"number_of_samples" default:"10"`
+		NumberOfSamples   int    `long:"number_of_samples" default:"100"`
 		OutputFileName    string `long:"output_file_name" default:"output.png"`
 		ShowAfterComplete int    `long:"show_after_complete" default:"1"`
-		NumberOfWorkers   int    `long:"number_of_workers" default:"-1"`
-		Scene             string `long:"scene" default:"cornell_box"`
+		NumberOfWorkers   int    `long:"number_of_workers" default:"4"`
+		Scene             string `long:"scene" default:"cornell_box_octahedron"`
 	}
 
 	_, err := flags.Parse(&opts)
@@ -61,6 +61,8 @@ func main() {
 	switch opts.Scene {
 	case "cornell_box":
 		scene = scenes.CornellBox(width, height)
+	case "cornell_box_octahedron":
+		scene = scenes.CornellBoxOctahedron(width, height)
 	default:
 		scene = scenes.CornellBox(width, height)
 	}
