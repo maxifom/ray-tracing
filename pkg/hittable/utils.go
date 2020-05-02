@@ -51,3 +51,25 @@ func Refract(uv, n Vec3, etaiOverEtat float64) Vec3 {
 	rOutPerp := n.MulN(-math.Sqrt(1.0 - rOutParallel.SqrLength()))
 	return rOutParallel.Add(rOutPerp)
 }
+
+func MollerTrumbor(orig, dir, v0, v1, v2 Vec3) float64 {
+	e1 := v1.Sub(v0)
+	e2 := v2.Sub(v0)
+	pvec := Cross(dir, e2)
+	det := Dot(e1, pvec)
+	if det < 1e-8 && det > -1e-8 {
+		return 0
+	}
+	invDet := 1 / det
+	tvec := orig.Sub(v0)
+	u := Dot(tvec, pvec) * invDet
+	if u < 0 || u > 1 {
+		return 0
+	}
+	qvec := Cross(tvec, e1)
+	v := Dot(dir, qvec) * invDet
+	if v < 0 || u+v > 1 {
+		return 0
+	}
+	return Dot(e2, qvec) * invDet
+}

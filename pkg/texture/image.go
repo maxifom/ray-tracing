@@ -2,6 +2,10 @@ package texture
 
 import (
 	"image"
+	_ "image/jpeg"
+	_ "image/png"
+	"log"
+	"os"
 
 	. "ray-tracing/pkg/vec3"
 )
@@ -9,6 +13,27 @@ import (
 type ImageTexture struct {
 	Nx, Ny int
 	Data   image.Image
+}
+
+func NewImageTexture(filename string) ImageTexture {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	defer f.Close()
+
+	imageData, _, err := image.Decode(f)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return ImageTexture{
+		Nx:   imageData.Bounds().Size().X,
+		Ny:   imageData.Bounds().Size().Y,
+		Data: imageData,
+	}
+
 }
 
 func (it ImageTexture) Value(u, v float64, p Vec3) Vec3 {
