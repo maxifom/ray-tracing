@@ -10,12 +10,14 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"runtime"
 	"sync"
 	"time"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/jessevdk/go-flags"
 
-	"ray-tracing/pkg/common"
+	. "ray-tracing/pkg/common"
 	. "ray-tracing/pkg/pdf"
 	. "ray-tracing/pkg/scene"
 	"ray-tracing/pkg/utils"
@@ -26,40 +28,63 @@ import (
 const MaxDepth = 50
 
 func main() {
+	var opts struct {
+		Width             int    `long:"width" default:"555"`
+		Height            int    `long:"height" default:"555"`
+		NumberOfSamples   int    `long:"number_of_samples" default:"10"`
+		OutputFileName    string `long:"output_file_name" default:"output.png"`
+		ShowAfterComplete int    `long:"show_after_complete" default:"1"`
+		NumberOfWorkers   int    `long:"number_of_workers" default:"-1"`
+		Scene             string `long:"scene" default:"cornell_box"`
+	}
+
+	_, err := flags.Parse(&opts)
+	if err != nil {
+		log.Fatalf("failed to parse flags: %s", err)
+	}
+
+	numberOfWorkers := opts.NumberOfWorkers
+	if numberOfWorkers == -1 {
+		numberOfWorkers = runtime.NumCPU()
+	}
+
 	rand.Seed(time.Now().UnixNano())
 
-	width := 555
-	height := 555
-	count := width * height
-	progressBar := pb.Full.Start(count)
+	width := opts.Width
+	height := opts.Height
+	numberOfSamples := opts.NumberOfSamples
 
-	outputImage := image.NewRGBA(image.Rect(0, 0, width, height))
-	numberOfSamples := 10
 	background := Vec3{0, 0, 0}
 
-	world, camera, lights := scenes.CornellBox(1)
+	var scene scenes.Scene
+
+	switch opts.Scene {
+	case "cornell_box":
+		scene = scenes.CornellBox(width, height)
+	default:
+		scene = scenes.CornellBox(width, height)
+	}
+	outputImage := image.NewRGBA(image.Rect(0, 0, scene.Width, scene.Height))
+	count := scene.Width * scene.Height
+	progressBar := pb.Full.Start(count)
 
 	workerChan := make(chan WorkerInput)
 	var wg sync.WaitGroup
-	for i := 0; i < 8; i++ {
+	for i := 0; i < numberOfWorkers; i++ {
 		wg.Add(1)
 		go worker(WorkerConfig{
-			Width:           width,
-			Height:          height,
 			NumberOfSamples: numberOfSamples,
 			Background:      background,
-			World:           world,
-			Camera:          camera,
+			Scene:           scene,
 			OutputImage:     outputImage,
 			InputChan:       workerChan,
 			Wg:              &wg,
-			Lights:          lights,
 		})
 	}
 
 	t := time.Now()
-	for j := 0; j < height; j++ {
-		for i := 0; i < width; i++ {
+	for j := 0; j < scene.Height; j++ {
+		for i := 0; i < scene.Width; i++ {
 			workerChan <- WorkerInput{
 				X: i,
 				Y: j,
@@ -76,23 +101,22 @@ func main() {
 	seconds := time.Since(t).Seconds()
 	log.Printf("Finished in %.2f seconds: Average speed: %.2f/s", seconds, float64(count)/seconds)
 
-	f, err := os.OpenFile("output.png", os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	f, err := os.OpenFile(opts.OutputFileName, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to open file: %s", err)
 	}
 	defer f.Close()
 
 	err = png.Encode(f, outputImage)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to encode image: %s", err)
 	}
-
-	display := exec.Command("display", "output.png")
-	display.Stdin = os.Stdin
-	display.Stdout = os.Stdout
-	err = display.Run()
-	if err != nil {
-		log.Panic(err)
+	if opts.ShowAfterComplete > 0 {
+		display := exec.Command("display", opts.OutputFileName)
+		err = display.Run()
+		if err != nil {
+			log.Panicf("failed to execute display command: %s", err)
+		}
 	}
 }
 
@@ -101,27 +125,25 @@ type WorkerInput struct {
 }
 
 type WorkerConfig struct {
-	Width, Height, NumberOfSamples int
-	Background                     Vec3
-	World                          common.Hittable
-	Camera                         Camera
-	OutputImage                    *image.RGBA
-	InputChan                      chan WorkerInput
-	Wg                             *sync.WaitGroup
-	Lights                         common.Hittable
+	Scene           scenes.Scene
+	NumberOfSamples int
+	Background      Vec3
+	OutputImage     *image.RGBA
+	InputChan       chan WorkerInput
+	Wg              *sync.WaitGroup
 }
 
 func worker(config WorkerConfig) {
 	defer config.Wg.Done()
 	for input := range config.InputChan {
 		i := float64(input.X)
-		j := float64(config.Height - input.Y)
+		j := float64(config.Scene.Height - input.Y)
 		col := Vec3{0, 0, 0}
 		for s := 0; s < config.NumberOfSamples; s++ {
-			u := (i + rand.Float64()) / float64(config.Width)
-			v := (j + rand.Float64()) / float64(config.Height)
-			ray := config.Camera.Ray(u, v)
-			col = col.Add(RayColor(ray, config.Background, config.World, config.Lights, MaxDepth))
+			u := (i + rand.Float64()) / float64(config.Scene.Width)
+			v := (j + rand.Float64()) / float64(config.Scene.Height)
+			ray := config.Scene.Camera.Ray(u, v)
+			col = col.Add(RayColor(ray, config.Background, config.Scene.World, config.Scene.Lights, MaxDepth))
 		}
 
 		col = col.DivN(float64(config.NumberOfSamples))
@@ -143,7 +165,7 @@ func worker(config WorkerConfig) {
 }
 
 // Цвет который получает луч
-func RayColor(r Ray, background Vec3, world common.Hittable, lights common.Hittable, depth int64) Vec3 {
+func RayColor(r Ray, background Vec3, world Hittable, lights Hittable, depth int64) Vec3 {
 	if depth <= 0 {
 		return Vec3{0, 0, 0}
 	}
