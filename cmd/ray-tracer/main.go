@@ -36,7 +36,7 @@ func main() {
 		OutputFileName    string `long:"output_file_name" default:"output.png"`
 		ShowAfterComplete int    `long:"show_after_complete" default:"1"`
 		NumberOfWorkers   int    `long:"number_of_workers" default:"-1"`
-		Scene             string `long:"scene" default:"simple_scene"`
+		Scene             string `long:"scene" default:"simple_scene_spheres"`
 	}
 
 	_, err := flags.Parse(&opts)
@@ -70,6 +70,8 @@ func main() {
 		scene = scenes.CornellBoxOctahedron(width, height)
 	case "simple_scene":
 		scene = scenes.SimpleScene(width, height)
+	case "simple_scene_spheres":
+		scene = scenes.SimpleSceneSpheres(width, height)
 	default:
 		scene = scenes.CornellBox(width, height)
 	}
