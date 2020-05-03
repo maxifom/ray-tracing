@@ -3,6 +3,7 @@ package material
 import (
 	. "ray-tracing/pkg/common"
 	. "ray-tracing/pkg/hittable"
+	"ray-tracing/pkg/pdf"
 	. "ray-tracing/pkg/scene"
 	. "ray-tracing/pkg/vec3"
 )
@@ -17,7 +18,7 @@ func (m Metal) Scatter(r Ray, rec HitRecord) (scattered ScatterRecord, hasScatte
 	scattered.Ray = Ray{rec.P, reflected.Add(RandomInUnitSphere().MulN(m.Fuzz)), r.Time}
 	scattered.Attenuation = m.Albedo
 	scattered.IsSpecular = true
-	scattered.PDF = nil
+	scattered.PDF = pdf.DefaultPDF{}
 	return scattered, true
 }
 

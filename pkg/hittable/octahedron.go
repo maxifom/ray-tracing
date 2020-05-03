@@ -1,6 +1,8 @@
 package hittable
 
 import (
+	"math"
+
 	. "ray-tracing/pkg/common"
 	. "ray-tracing/pkg/scene"
 	. "ray-tracing/pkg/vec3"
@@ -56,9 +58,18 @@ func (o Octahedron) BoundingBox(t0, t1 float64) (AABB, bool) {
 }
 
 func (o Octahedron) PDFValue(ov, v Vec3) float64 {
-	return 0
+	_, isHit := o.Hit(Ray{ov, v, 0}, 0.001, math.Inf(1))
+	if !isHit {
+		return 0
+	}
+	cosThetaMax := math.Sqrt(1.0 - o.Radius*o.Radius/(o.Center.Sub(v).SqrLength()))
+	solidAngle := 2 * math.Pi * (1 - cosThetaMax)
+	return 1 / solidAngle
 }
 
 func (o Octahedron) Random(origin Vec3) Vec3 {
-	return Vec3{1, 0, 0}
+	direction := o.Center.Sub(origin)
+	distanceSquared := direction.SqrLength()
+	onb := NewONB(direction)
+	return onb.Local(RandomToSphere(o.Radius, distanceSquared))
 }

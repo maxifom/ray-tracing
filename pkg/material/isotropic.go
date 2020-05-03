@@ -2,6 +2,7 @@ package material
 
 import (
 	"ray-tracing/pkg/common"
+	"ray-tracing/pkg/pdf"
 	. "ray-tracing/pkg/scene"
 	. "ray-tracing/pkg/vec3"
 )
@@ -13,7 +14,7 @@ type Isotropic struct {
 func (i Isotropic) Scatter(r Ray, rec common.HitRecord) (scattered common.ScatterRecord, hasScattered bool) {
 	scattered.Attenuation = i.Albedo.Value(rec.U, rec.V, rec.P)
 	scattered.Ray = Ray{rec.P, RandomInUnitSphere(), r.Time}
-	scattered.PDF = nil
+	scattered.PDF = pdf.DefaultPDF{}
 	return scattered, true
 }
 

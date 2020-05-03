@@ -6,7 +6,6 @@ import (
 	. "ray-tracing/pkg/vec3"
 )
 
-// Луч +++
 type Ray struct {
 	Origin, Direction Vec3
 

@@ -1,8 +1,6 @@
 package scenes
 
 import (
-	"math"
-
 	. "ray-tracing/pkg/common"
 	. "ray-tracing/pkg/hittable"
 	. "ray-tracing/pkg/material"
@@ -11,9 +9,8 @@ import (
 	. "ray-tracing/pkg/vec3"
 )
 
-func CornellBoxOctahedron(width, height int) (scene Scene) {
-	m := int(math.Max(float64(width), float64(height)))
-	scene.Width = m
+func CornellBoxOctahedron(width int) (scene Scene) {
+	scene.Width = width
 	// width / height
 	aspect := 1.0
 	scene.Height = int(float64(scene.Width) / aspect)

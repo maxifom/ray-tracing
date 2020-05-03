@@ -1,7 +1,6 @@
 package scenes
 
 import (
-	"math"
 	"math/rand"
 
 	. "ray-tracing/pkg/hittable"
@@ -12,9 +11,8 @@ import (
 	. "ray-tracing/pkg/vec3"
 )
 
-func SimpleSceneSpheres(width, height int) (scene Scene) {
-	m := int(math.Max(float64(width), float64(height)))
-	scene.Width = m
+func SimpleSceneSpheres(width int) (scene Scene) {
+	scene.Width = width
 	// width / height
 	aspect := 16.0 / 9.0
 	scene.Height = int(float64(scene.Width) / aspect)
@@ -31,7 +29,7 @@ func SimpleSceneSpheres(width, height int) (scene Scene) {
 					albedo := ConstantTexture{Vec3{rand.Float64(), rand.Float64(), rand.Float64()}}
 					scene.World = append(scene.World, Sphere{center, 0.2, Lambertian{albedo}})
 				} else if chooseMaterial < 0.95 {
-					albedo := Vec3{RandomDouble(.5, 1), RandomDouble(.5, 1), RandomDouble(.5, 1)}
+					albedo := RandomVector(.5, 1)
 					fuzz := RandomDouble(0, .5)
 					scene.World = append(scene.World, Sphere{center, .2, Metal{albedo, fuzz}})
 				} else {

@@ -3,6 +3,8 @@ package vec3
 import (
 	"fmt"
 	"math"
+
+	"ray-tracing/pkg/utils"
 )
 
 // Реализация трехмерного вектора
@@ -97,4 +99,12 @@ func Cross(v, v1 Vec3) Vec3 {
 
 func (v Vec3) String() string {
 	return fmt.Sprintf("%.4f %.4f %.4f", v.X, v.Y, v.Z)
+}
+
+func RandomVector(a, b float64) Vec3 {
+	return Vec3{
+		X: utils.RandomDouble(a, b),
+		Y: utils.RandomDouble(a, b),
+		Z: utils.RandomDouble(a, b),
+	}
 }

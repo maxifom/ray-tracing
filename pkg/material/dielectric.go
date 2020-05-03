@@ -6,6 +6,7 @@ import (
 
 	"ray-tracing/pkg/common"
 	. "ray-tracing/pkg/hittable"
+	"ray-tracing/pkg/pdf"
 	. "ray-tracing/pkg/scene"
 	"ray-tracing/pkg/utils"
 	. "ray-tracing/pkg/vec3"
@@ -17,7 +18,7 @@ type Dielectric struct {
 
 func (d Dielectric) Scatter(r Ray, rec common.HitRecord) (scattered common.ScatterRecord, hasScattered bool) {
 	scattered.IsSpecular = true
-	scattered.PDF = nil
+	scattered.PDF = pdf.DefaultPDF{}
 
 	// Attenuation is always 1 — the glass surface absorbs nothing
 	scattered.Attenuation = Vec3{1, 1, 1}

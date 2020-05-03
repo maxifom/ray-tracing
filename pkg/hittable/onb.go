@@ -6,6 +6,7 @@ import (
 	. "ray-tracing/pkg/vec3"
 )
 
+// ortho-normal basis
 type ONB struct {
 	U, V, W Vec3
 }

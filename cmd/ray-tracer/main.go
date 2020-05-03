@@ -30,13 +30,12 @@ const MaxDepth = 50
 
 func main() {
 	var opts struct {
-		Width             int    `long:"width" default:"600"`
-		Height            int    `long:"height" default:"600"`
-		NumberOfSamples   int    `long:"number_of_samples" default:"25"`
+		Width             int    `long:"width" default:"960"`
+		NumberOfSamples   int    `long:"number_of_samples" default:"10"`
 		OutputFileName    string `long:"output_file_name" default:"output.png"`
 		ShowAfterComplete int    `long:"show_after_complete" default:"1"`
-		NumberOfWorkers   int    `long:"number_of_workers" default:"-1"`
-		Scene             string `long:"scene" default:"simple_scene_spheres"`
+		NumberOfWorkers   int    `long:"number_of_workers" default:"4"`
+		Scene             string `long:"scene" default:"simple_random_scene"`
 	}
 
 	_, err := flags.Parse(&opts)
@@ -56,7 +55,6 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	width := opts.Width
-	height := opts.Height
 	numberOfSamples := opts.NumberOfSamples
 
 	background := Vec3{0, 0, 0}
@@ -65,15 +63,17 @@ func main() {
 
 	switch opts.Scene {
 	case "cornell_box":
-		scene = scenes.CornellBox(width, height)
+		scene = scenes.CornellBox(width)
 	case "cornell_box_octahedron":
-		scene = scenes.CornellBoxOctahedron(width, height)
+		scene = scenes.CornellBoxOctahedron(width)
 	case "simple_scene":
-		scene = scenes.SimpleScene(width, height)
+		scene = scenes.SimpleScene(width)
 	case "simple_scene_spheres":
-		scene = scenes.SimpleSceneSpheres(width, height)
+		scene = scenes.SimpleSceneSpheres(width)
+	case "simple_random_scene":
+		scene = scenes.SimpleRandomScene(width)
 	default:
-		scene = scenes.CornellBox(width, height)
+		panic(opts.Scene + " not defined")
 	}
 
 	log.Printf("Image dimensions: %dx%d, number of samples: %d", scene.Width, scene.Height, numberOfSamples)
