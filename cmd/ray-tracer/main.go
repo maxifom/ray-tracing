@@ -30,12 +30,12 @@ const MaxDepth = 50
 
 func main() {
 	var opts struct {
-		Width             int    `long:"width" default:"960"`
+		Width             int    `long:"width" default:"555"`
 		NumberOfSamples   int    `long:"number_of_samples" default:"10"`
 		OutputFileName    string `long:"output_file_name" default:"output.png"`
 		ShowAfterComplete int    `long:"show_after_complete" default:"1"`
-		NumberOfWorkers   int    `long:"number_of_workers" default:"4"`
-		Scene             string `long:"scene" default:"simple_random_scene"`
+		NumberOfWorkers   int    `long:"number_of_workers" default:"-1"`
+		Scene             string `long:"scene" default:"cornell_box"`
 	}
 
 	_, err := flags.Parse(&opts)
